@@ -1,0 +1,22 @@
+{
+  "_metadata": {
+    "scenario_id": "SCN-ABSENCE-01",
+    "name": "Bottleneck Operator Absence",
+    "description": "Simulates the unannounced absence of a grinder-certified operator at the start of Shift B, reducing bottleneck labor capacity by 50% for the day.",
+    "target_baseline_commit": "a7f8b9c"
+  },
+  "context": {
+    "current_time": "2026-08-26T14:30:00Z",
+    "active_shift": "B"
+  },
+  "events": [
+    {
+      "event_type": "OPERATOR_ABSENCE",
+      "target_id": "OP-014",
+      "start_time": "2026-08-26T14:30:00Z",
+      "duration_hours": 8.5,
+      "impact": "REMOVE_CAPACITY",
+      "notes": "Shift B grinder operator (Karthik) called in sick. GRINDER-01 is fully functional but lacks an operator. The engine must evaluate authorizing overtime for a Shift A operator or leaving the bottleneck idle."
+    }
+  ]
+}
