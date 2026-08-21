@@ -1,0 +1,22 @@
+{
+  "_metadata": {
+    "scenario_id": "SCN-MATERIAL-01",
+    "name": "Late Raw Material Delivery",
+    "description": "Simulates a 24-hour delay in receiving castings/forgings for a critical Tier-1 order, forcing the scheduler to pull alternative work forward to prevent idle spindle time.",
+    "target_baseline_commit": "a7f8b9c"
+  },
+  "context": {
+    "current_time": "2026-08-24T06:00:00Z",
+    "active_shift": "A"
+  },
+  "events": [
+    {
+      "event_type": "MATERIAL_DELAY",
+      "target_id": "ORD-104",
+      "start_time": "2026-08-24T06:00:00Z",
+      "duration_hours": 24.0,
+      "impact": "DELAY_START",
+      "notes": "Raw material supplier delayed delivery of FAM_A castings. Operation 1 (CNC Lathe) for ORD-104 cannot begin until Tuesday 06:00. Other jobs must be pulled forward to utilize LATHE capacity."
+    }
+  ]
+}
