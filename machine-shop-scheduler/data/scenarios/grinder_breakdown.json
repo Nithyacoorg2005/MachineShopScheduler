@@ -1,0 +1,30 @@
+{
+  "_metadata": {
+    "scenario_id": "SCN-LIVE-DEFENSE-01",
+    "name": "Grinder Failure & Operator Absence",
+    "description": "Simulates the live defense injection: Grinder down for 8 hours starting Tuesday 11:00 AM, accompanied by the absence of a certified grinder operator.",
+    "target_baseline_commit": "a7f8b9c"
+  },
+  "context": {
+    "current_time": "2026-08-25T11:00:00Z",
+    "active_shift": "A"
+  },
+  "events": [
+    {
+      "event_type": "MACHINE_BREAKDOWN",
+      "target_id": "GRINDER-01",
+      "start_time": "2026-08-25T11:00:00Z",
+      "duration_hours": 8.0,
+      "impact": "HALT_OPERATIONS",
+      "notes": "Spindle failure. External maintenance technician dispatched. Hard constraint: No grinding operations can occur during this window."
+    },
+    {
+      "event_type": "OPERATOR_ABSENCE",
+      "target_id": "OP-001",
+      "start_time": "2026-08-25T06:00:00Z",
+      "duration_hours": 8.5,
+      "impact": "REMOVE_CAPACITY",
+      "notes": "Murugan (Grinder-certified operator for Shift A) is absent for his entire shift. Leaves only 2 certified operators available in the roster to recover the backlog."
+    }
+  ]
+}
