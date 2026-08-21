@@ -1,0 +1,25 @@
+{
+  "_metadata": {
+    "scenario_id": "SCN-REWORK-01",
+    "name": "Quality Inspection Failure & Rework",
+    "description": "Simulates a 5% quality failure on a batch at final inspection, forcing a rework routing that immediately re-enters the queue and consumes bottleneck capacity.",
+    "target_baseline_commit": "a7f8b9c"
+  },
+  "context": {
+    "current_time": "2026-08-28T09:00:00Z",
+    "active_shift": "A"
+  },
+  "events": [
+    {
+      "event_type": "REWORK_GENERATED",
+      "target_id": "ORD-112",
+      "start_time": "2026-08-28T09:00:00Z",
+      "rework_quantity": 40,
+      "impact": "INJECT_ROUTING",
+      "rework_routing": [
+        {"op_seq": 1, "type": "Grinding", "time_per_piece_mins": 1.2}
+      ],
+      "notes": "40 pieces (5%) of ORD-112 failed final inspection due to surface finish tolerances. They must be re-run through the Grinder immediately, stealing capacity from the active queue."
+    }
+  ]
+}
