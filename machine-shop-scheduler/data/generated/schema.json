@@ -39,40 +39,47 @@
     },
 
     "shop_config": {
+  "type": "object",
+  "properties": {
+    "shifts": {
       "type": "object",
-      "required": [
-        "shifts",
-        "generator_cost_differential",
-        "overtime_rate_multiplier"
-      ],
-      "properties": {
-        "shifts": {
+      "patternProperties": {
+        "^[A-C]$": {
           "type": "object",
-          "required": [
-            "A",
-            "B"
-          ],
           "properties": {
-            "A": {
-              "$ref": "#/$defs/shift"
+            "start": {
+              "type": "string"
             },
-            "B": {
-              "$ref": "#/$defs/shift"
+            "end": {
+              "type": "string"
             }
           },
-          "additionalProperties": false
-        },
-        "generator_cost_differential": {
-          "type": "number",
-          "minimum": 0
-        },
-        "overtime_rate_multiplier": {
-          "type": "number",
-          "minimum": 1
+          "required": [
+            "start",
+            "end"
+          ]
         }
-      },
-      "additionalProperties": false
+      }
     },
+    "generator_cost_differential": {
+      "type": "number"
+    },
+    "overtime_rate_multiplier": {
+      "type": "number"
+    },
+    "replan_change_penalty_lambda": {
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "shifts",
+    "generator_cost_differential",
+    "overtime_rate_multiplier",
+    "replan_change_penalty_lambda"
+  ]
+},
+      
 
     "machines": {
       "type": "array",

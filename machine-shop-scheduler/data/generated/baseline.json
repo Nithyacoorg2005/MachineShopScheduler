@@ -16,7 +16,8 @@
       }
     },
     "generator_cost_differential": 3.0,
-    "overtime_rate_multiplier": 1.5
+    "overtime_rate_multiplier": 1.5,
+    "replan_change_penalty_lambda": 500
   },
   "machines": [
     {
@@ -632,7 +633,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 2.4
+          "time_per_piece_mins": 0.2414
         },
         {
           "op_seq": 4,
@@ -663,7 +664,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.94
+          "time_per_piece_mins": 0.1951
         },
         {
           "op_seq": 4,
@@ -694,7 +695,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.53
+          "time_per_piece_mins": 0.1539
         },
         {
           "op_seq": 4,
@@ -730,7 +731,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.56
+          "time_per_piece_mins": 0.1569
         },
         {
           "op_seq": 4,
@@ -766,7 +767,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.07
+          "time_per_piece_mins": 0.1076
         },
         {
           "op_seq": 4,
@@ -807,7 +808,7 @@
         {
           "op_seq": 4,
           "type": "Grinding",
-          "time_per_piece_mins": 1.38
+          "time_per_piece_mins": 0.1388
         },
         {
           "op_seq": 5,
@@ -838,7 +839,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.49
+          "time_per_piece_mins": 0.1499
         },
         {
           "op_seq": 4,
@@ -869,7 +870,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 2.39
+          "time_per_piece_mins": 0.2404
         },
         {
           "op_seq": 4,
@@ -900,7 +901,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 2.34
+          "time_per_piece_mins": 0.2354
         },
         {
           "op_seq": 4,
@@ -962,7 +963,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.38
+          "time_per_piece_mins": 0.1388
         },
         {
           "op_seq": 4,
@@ -998,7 +999,7 @@
         {
           "op_seq": 4,
           "type": "Grinding",
-          "time_per_piece_mins": 1.06
+          "time_per_piece_mins": 0.1066
         },
         {
           "op_seq": 5,
@@ -1060,7 +1061,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 2.06
+          "time_per_piece_mins": 0.2072
         },
         {
           "op_seq": 4,
@@ -1132,7 +1133,7 @@
         {
           "op_seq": 4,
           "type": "Grinding",
-          "time_per_piece_mins": 2.07
+          "time_per_piece_mins": 0.2082
         },
         {
           "op_seq": 5,
@@ -1163,7 +1164,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.9
+          "time_per_piece_mins": 0.0905
         },
         {
           "op_seq": 4,
@@ -1199,7 +1200,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 2.1
+          "time_per_piece_mins": 0.2112
         },
         {
           "op_seq": 4,
@@ -1261,7 +1262,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.88
+          "time_per_piece_mins": 0.0885
         },
         {
           "op_seq": 4,
@@ -1292,7 +1293,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.57
+          "time_per_piece_mins": 0.1579
         },
         {
           "op_seq": 4,
@@ -1323,7 +1324,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.48
+          "time_per_piece_mins": 0.1489
         },
         {
           "op_seq": 4,
@@ -1359,7 +1360,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 1.84
+          "time_per_piece_mins": 0.1851
         },
         {
           "op_seq": 4,
@@ -1400,7 +1401,7 @@
         {
           "op_seq": 4,
           "type": "Grinding",
-          "time_per_piece_mins": 1.37
+          "time_per_piece_mins": 0.1378
         },
         {
           "op_seq": 5,
@@ -1431,7 +1432,7 @@
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.95
+          "time_per_piece_mins": 0.0956
         },
         {
           "op_seq": 4,

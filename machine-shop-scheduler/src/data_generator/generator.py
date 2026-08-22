@@ -34,10 +34,16 @@ def generate_machines(rng):
                 "type": machine_type,
                 "hourly_cost": props["hourly_cost"],
                 "mtbf_hrs": round(
-                    rng.uniform(*props["mtbf_hrs_range"]), 1
+                    rng.uniform(
+                        *props["mtbf_hrs_range"]
+                    ),
+                    1
                 ),
                 "mttr_hrs": round(
-                    rng.uniform(*props["mttr_hrs_range"]), 1
+                    rng.uniform(
+                        *props["mttr_hrs_range"]
+                    ),
+                    1
                 ),
                 "status": "AVAILABLE"
             })
@@ -76,6 +82,7 @@ def generate_operators(machines, rng):
 
         if index in grinder_indices:
             additional_count = rng.randint(1, 2)
+
             additional_certifications = rng.sample(
                 non_grinder_machines,
                 additional_count
@@ -100,7 +107,9 @@ def generate_operators(machines, rng):
             "operator_id": f"OP-{index + 1:03d}",
             "name": f"Operator_{index + 1:03d}",
             "shift": shift,
-            "certified_machines": sorted(set(certifications)),
+            "certified_machines": sorted(
+                set(certifications)
+            ),
             "absenteeism_prob": round(
                 rng.uniform(
                     *config.ABSENTEEISM_PROBABILITY_RANGE
@@ -144,23 +153,35 @@ def generate_operation_time(operation_type, rng):
     minimum, maximum = ranges[operation_type]
 
     return round(
-        rng.uniform(minimum, maximum),
+        rng.uniform(
+            minimum,
+            maximum
+        ),
         2
     )
 
 
 def generate_routing(rng):
-    template = list(rng.choice(ROUTING_TEMPLATES))
+    template = list(
+        rng.choice(
+            ROUTING_TEMPLATES
+        )
+    )
 
     routing = []
 
-    for sequence, operation_type in enumerate(template, start=1):
+    for sequence, operation_type in enumerate(
+        template,
+        start=1
+    ):
         routing.append({
             "op_seq": sequence,
             "type": operation_type,
-            "time_per_piece_mins": generate_operation_time(
-                operation_type,
-                rng
+            "time_per_piece_mins": (
+                generate_operation_time(
+                    operation_type,
+                    rng
+                )
             )
         })
 
@@ -188,7 +209,10 @@ def generate_order_quantity(tier, rng):
 
     return max(
         minimum,
-        min(maximum, quantity)
+        min(
+            maximum,
+            quantity
+        )
     )
 
 
@@ -203,10 +227,13 @@ def generate_orders(rng):
         0
     )
 
-    for index in range(1, config.TARGET_ORDERS + 1):
+    for index in range(
+        1,
+        config.TARGET_ORDERS + 1
+    ):
         is_tier_1 = (
-            rng.random() <
-            config.TIER_1_PROBABILITY
+            rng.random()
+            < config.TIER_1_PROBABILITY
         )
 
         tier = (
@@ -226,12 +253,20 @@ def generate_orders(rng):
             rng
         )
 
-        due_offset_days = rng.randint(2, 14)
-        due_hour = rng.choice([0, 8, 16])
+        due_offset_days = rng.randint(
+            2,
+            14
+        )
+
+        due_hour = rng.choice([
+            0,
+            8,
+            16
+        ])
 
         due_date = (
-            base_date +
-            timedelta(
+            base_date
+            + timedelta(
                 days=due_offset_days,
                 hours=due_hour
             )
@@ -250,10 +285,14 @@ def generate_orders(rng):
                 "%Y-%m-%dT%H:%M:%SZ"
             ),
             "daily_late_penalty": rng.randint(
-                *multipliers["daily_penalty_range"]
+                *multipliers[
+                    "daily_penalty_range"
+                ]
             ),
             "unit_margin": rng.randint(
-                *multipliers["unit_margin_range"]
+                *multipliers[
+                    "unit_margin_range"
+                ]
             ),
             "routing": routing
         })
@@ -261,25 +300,100 @@ def generate_orders(rng):
     return orders
 
 
-def generate_breakdown_history(machines, rng):
+def calculate_grinder_workload_minutes(orders):
+    total_minutes = 0.0
+
+    for order in orders:
+        for operation in order["routing"]:
+            if operation["type"] == "Grinding":
+                total_minutes += (
+                    operation[
+                        "time_per_piece_mins"
+                    ]
+                    * order["quantity"]
+                )
+
+    return total_minutes
+
+
+def calibrate_grinder_workload(orders, rng):
+    raw_minutes = (
+        calculate_grinder_workload_minutes(
+            orders
+        )
+    )
+
+    if raw_minutes <= 0:
+        return
+
+    target_utilization = rng.uniform(
+        *config.GRINDER_TARGET_UTILIZATION_RANGE
+    )
+
+    target_minutes = (
+        config.GRINDER_CAPACITY_HOURS
+        * 60
+        * target_utilization
+    )
+
+    scale_factor = (
+        target_minutes
+        / raw_minutes
+    )
+
+    for order in orders:
+        for operation in order["routing"]:
+            if operation["type"] != "Grinding":
+                continue
+
+            current_time = (
+                operation[
+                    "time_per_piece_mins"
+                ]
+            )
+
+            operation[
+                "time_per_piece_mins"
+            ] = round(
+                current_time
+                * scale_factor,
+                4
+            )
+
+
+def generate_breakdown_history(
+    machines,
+    rng
+):
     breakdowns = []
 
     for machine in machines:
         machine_type = machine["type"]
 
         if machine_type == "GRINDING":
-            event_count = rng.randint(3, 6)
+            event_count = rng.randint(
+                3,
+                6
+            )
         elif machine_type == "CNC_LATHE":
-            event_count = rng.randint(1, 3)
+            event_count = rng.randint(
+                1,
+                3
+            )
         else:
-            event_count = rng.randint(0, 2)
+            event_count = rng.randint(
+                0,
+                2
+            )
 
-        for event_index in range(event_count):
+        for _ in range(event_count):
             breakdowns.append({
                 "breakdown_id": (
                     f"BD-{len(breakdowns) + 1:04d}"
                 ),
-                "machine_id": machine["machine_id"],
+                "machine_id": (
+                    machine["machine_id"]
+                ),
                 "machine_type": machine_type,
                 "duration_hours": round(
                     rng.uniform(
@@ -302,9 +416,13 @@ def generate_breakdown_history(machines, rng):
 
 
 def generate_baseline_dataset():
-    rng = random.Random(config.SEED)
+    rng = random.Random(
+        config.SEED
+    )
 
-    machines = generate_machines(rng)
+    machines = generate_machines(
+        rng
+    )
 
     operators = generate_operators(
         machines,
@@ -315,7 +433,14 @@ def generate_baseline_dataset():
         rng
     )
 
-    orders = generate_orders(rng)
+    orders = generate_orders(
+        rng
+    )
+
+    calibrate_grinder_workload(
+        orders,
+        rng
+    )
 
     breakdown_history = generate_breakdown_history(
         machines,
@@ -335,6 +460,9 @@ def generate_baseline_dataset():
             ),
             "overtime_rate_multiplier": (
                 config.OVERTIME_MULTIPLIER
+            ),
+            "replan_change_penalty_lambda": (
+                config.REPLAN_CHANGE_PENALTY_LAMBDA
             )
         },
         "machines": machines,
