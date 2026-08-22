@@ -1,99 +1,1586 @@
 {
   "_metadata": {
     "version": "1.0.0",
-    "commit": "a7f8b9c",
     "seed": 20260821,
-    "generated_at": "2026-08-21T22:28:53Z",
     "validation_status": "PASSED"
   },
   "shop_config": {
     "shifts": {
-      "A": {"start": "06:00", "end": "14:30"},
-      "B": {"start": "14:30", "end": "23:00"}
+      "A": {
+        "start": "06:00",
+        "end": "14:30"
+      },
+      "B": {
+        "start": "14:30",
+        "end": "23:00"
+      }
     },
     "generator_cost_differential": 3.0,
     "overtime_rate_multiplier": 1.5
   },
   "machines": [
-    {"machine_id": "LATHE-01", "type": "CNC Lathe", "hourly_cost": 800, "mtbf_hrs": 150, "mttr_hrs": 2},
-    {"machine_id": "LATHE-02", "type": "CNC Lathe", "hourly_cost": 800, "mtbf_hrs": 150, "mttr_hrs": 2},
-    {"machine_id": "LATHE-03", "type": "CNC Lathe", "hourly_cost": 800, "mtbf_hrs": 150, "mttr_hrs": 2},
-    {"machine_id": "LATHE-04", "type": "CNC Lathe", "hourly_cost": 800, "mtbf_hrs": 150, "mttr_hrs": 2},
-    {"machine_id": "LATHE-05", "type": "CNC Lathe", "hourly_cost": 800, "mtbf_hrs": 150, "mttr_hrs": 2},
-    {"machine_id": "MILL-01", "type": "Milling", "hourly_cost": 950, "mtbf_hrs": 200, "mttr_hrs": 3},
-    {"machine_id": "MILL-02", "type": "Milling", "hourly_cost": 950, "mtbf_hrs": 200, "mttr_hrs": 3},
-    {"machine_id": "MILL-03", "type": "Milling", "hourly_cost": 950, "mtbf_hrs": 200, "mttr_hrs": 3},
-    {"machine_id": "MILL-04", "type": "Milling", "hourly_cost": 950, "mtbf_hrs": 200, "mttr_hrs": 3},
-    {"machine_id": "DRILL-01", "type": "Drill", "hourly_cost": 400, "mtbf_hrs": 300, "mttr_hrs": 1},
-    {"machine_id": "DRILL-02", "type": "Drill", "hourly_cost": 400, "mtbf_hrs": 300, "mttr_hrs": 1},
-    {"machine_id": "DRILL-03", "type": "Drill", "hourly_cost": 400, "mtbf_hrs": 300, "mttr_hrs": 1},
-    {"machine_id": "DRILL-04", "type": "Drill", "hourly_cost": 400, "mtbf_hrs": 300, "mttr_hrs": 1},
-    {"machine_id": "GRINDER-01", "type": "Grinding", "hourly_cost": 1200, "mtbf_hrs": 120, "mttr_hrs": 8}
+    {
+      "machine_id": "LATHE-01",
+      "type": "CNC_LATHE",
+      "hourly_cost": 800,
+      "mtbf_hrs": 198.7,
+      "mttr_hrs": 1.2,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "LATHE-02",
+      "type": "CNC_LATHE",
+      "hourly_cost": 800,
+      "mtbf_hrs": 199.4,
+      "mttr_hrs": 1.6,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "LATHE-03",
+      "type": "CNC_LATHE",
+      "hourly_cost": 800,
+      "mtbf_hrs": 145.0,
+      "mttr_hrs": 1.6,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "LATHE-04",
+      "type": "CNC_LATHE",
+      "hourly_cost": 800,
+      "mtbf_hrs": 126.4,
+      "mttr_hrs": 1.4,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "LATHE-05",
+      "type": "CNC_LATHE",
+      "hourly_cost": 800,
+      "mtbf_hrs": 127.1,
+      "mttr_hrs": 2.4,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "MILL-01",
+      "type": "MILLING",
+      "hourly_cost": 950,
+      "mtbf_hrs": 167.7,
+      "mttr_hrs": 3.5,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "MILL-02",
+      "type": "MILLING",
+      "hourly_cost": 950,
+      "mtbf_hrs": 249.3,
+      "mttr_hrs": 2.8,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "MILL-03",
+      "type": "MILLING",
+      "hourly_cost": 950,
+      "mtbf_hrs": 197.3,
+      "mttr_hrs": 3.7,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "MILL-04",
+      "type": "MILLING",
+      "hourly_cost": 950,
+      "mtbf_hrs": 182.6,
+      "mttr_hrs": 3.8,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "DRILL-01",
+      "type": "DRILL",
+      "hourly_cost": 400,
+      "mtbf_hrs": 296.3,
+      "mttr_hrs": 1.1,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "DRILL-02",
+      "type": "DRILL",
+      "hourly_cost": 400,
+      "mtbf_hrs": 328.5,
+      "mttr_hrs": 0.9,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "DRILL-03",
+      "type": "DRILL",
+      "hourly_cost": 400,
+      "mtbf_hrs": 320.5,
+      "mttr_hrs": 0.6,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "DRILL-04",
+      "type": "DRILL",
+      "hourly_cost": 400,
+      "mtbf_hrs": 255.5,
+      "mttr_hrs": 1.5,
+      "status": "AVAILABLE"
+    },
+    {
+      "machine_id": "GRINDER-01",
+      "type": "GRINDING",
+      "hourly_cost": 1200,
+      "mtbf_hrs": 133.1,
+      "mttr_hrs": 6.1,
+      "status": "AVAILABLE"
+    }
   ],
   "changeover_matrix": {
-    "SAME_FAMILY_MINS": 20,
-    "CROSS_FAMILY_MINS": 150,
-    "part_families": ["FAM_A", "FAM_B", "FAM_C", "FAM_D"]
+    "matrix": {
+      "FAM_A": {
+        "FAM_A": 20,
+        "FAM_B": 160,
+        "FAM_C": 135,
+        "FAM_D": 137
+      },
+      "FAM_B": {
+        "FAM_A": 126,
+        "FAM_B": 20,
+        "FAM_C": 125,
+        "FAM_D": 161
+      },
+      "FAM_C": {
+        "FAM_A": 126,
+        "FAM_B": 146,
+        "FAM_C": 20,
+        "FAM_D": 156
+      },
+      "FAM_D": {
+        "FAM_A": 163,
+        "FAM_B": 162,
+        "FAM_C": 144,
+        "FAM_D": 20
+      }
+    },
+    "part_families": [
+      "FAM_A",
+      "FAM_B",
+      "FAM_C",
+      "FAM_D"
+    ]
   },
   "operators": [
     {
       "operator_id": "OP-001",
-      "name": "Murugan",
+      "name": "Operator_001",
       "shift": "A",
-      "certified_machines": ["GRINDER-01", "LATHE-01", "LATHE-02"],
-      "absenteeism_prob": 0.02
+      "certified_machines": [
+        "LATHE-05",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.015
     },
     {
-      "operator_id": "OP-014",
-      "name": "Karthik",
-      "shift": "B",
-      "certified_machines": ["GRINDER-01", "MILL-01", "MILL-02"],
-      "absenteeism_prob": 0.05
+      "operator_id": "OP-002",
+      "name": "Operator_002",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-02",
+        "LATHE-03",
+        "MILL-02",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.036
     },
     {
-      "operator_id": "OP-029",
-      "name": "Anand",
+      "operator_id": "OP-003",
+      "name": "Operator_003",
       "shift": "A",
-      "certified_machines": ["GRINDER-01", "DRILL-01"],
-      "absenteeism_prob": 0.01
+      "certified_machines": [
+        "DRILL-02",
+        "MILL-02"
+      ],
+      "absenteeism_prob": 0.026
     },
     {
       "operator_id": "OP-004",
-      "name": "Ramesh",
-      "shift": "B",
-      "certified_machines": ["LATHE-03", "LATHE-04", "LATHE-05"],
+      "name": "Operator_004",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-04",
+        "GRINDER-01",
+        "LATHE-01"
+      ],
+      "absenteeism_prob": 0.05
+    },
+    {
+      "operator_id": "OP-005",
+      "name": "Operator_005",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-03",
+        "LATHE-01",
+        "LATHE-05",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.037
+    },
+    {
+      "operator_id": "OP-006",
+      "name": "Operator_006",
+      "shift": "A",
+      "certified_machines": [
+        "GRINDER-01",
+        "LATHE-05"
+      ],
+      "absenteeism_prob": 0.013
+    },
+    {
+      "operator_id": "OP-007",
+      "name": "Operator_007",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-03",
+        "LATHE-04",
+        "MILL-01",
+        "MILL-03"
+      ],
+      "absenteeism_prob": 0.018
+    },
+    {
+      "operator_id": "OP-008",
+      "name": "Operator_008",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-01",
+        "DRILL-02",
+        "DRILL-04",
+        "LATHE-04"
+      ],
+      "absenteeism_prob": 0.029
+    },
+    {
+      "operator_id": "OP-009",
+      "name": "Operator_009",
+      "shift": "A",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-04",
+        "MILL-02",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.02
+    },
+    {
+      "operator_id": "OP-010",
+      "name": "Operator_010",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-03",
+        "DRILL-04",
+        "LATHE-03"
+      ],
+      "absenteeism_prob": 0.04
+    },
+    {
+      "operator_id": "OP-011",
+      "name": "Operator_011",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-01",
+        "LATHE-05",
+        "MILL-01",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.048
+    },
+    {
+      "operator_id": "OP-012",
+      "name": "Operator_012",
+      "shift": "A",
+      "certified_machines": [
+        "GRINDER-01",
+        "LATHE-04",
+        "MILL-03"
+      ],
+      "absenteeism_prob": 0.025
+    },
+    {
+      "operator_id": "OP-013",
+      "name": "Operator_013",
+      "shift": "A",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-02"
+      ],
+      "absenteeism_prob": 0.022
+    },
+    {
+      "operator_id": "OP-014",
+      "name": "Operator_014",
+      "shift": "A",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-03"
+      ],
+      "absenteeism_prob": 0.018
+    },
+    {
+      "operator_id": "OP-015",
+      "name": "Operator_015",
+      "shift": "A",
+      "certified_machines": [
+        "LATHE-02",
+        "LATHE-04",
+        "LATHE-05",
+        "MILL-02"
+      ],
+      "absenteeism_prob": 0.037
+    },
+    {
+      "operator_id": "OP-016",
+      "name": "Operator_016",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-02",
+        "DRILL-03",
+        "LATHE-01",
+        "LATHE-02"
+      ],
+      "absenteeism_prob": 0.037
+    },
+    {
+      "operator_id": "OP-017",
+      "name": "Operator_017",
+      "shift": "A",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-03"
+      ],
+      "absenteeism_prob": 0.015
+    },
+    {
+      "operator_id": "OP-018",
+      "name": "Operator_018",
+      "shift": "A",
+      "certified_machines": [
+        "LATHE-02",
+        "LATHE-03",
+        "MILL-01",
+        "MILL-02"
+      ],
+      "absenteeism_prob": 0.012
+    },
+    {
+      "operator_id": "OP-019",
+      "name": "Operator_019",
+      "shift": "A",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-03",
+        "MILL-02",
+        "MILL-03"
+      ],
+      "absenteeism_prob": 0.038
+    },
+    {
+      "operator_id": "OP-020",
+      "name": "Operator_020",
+      "shift": "A",
+      "certified_machines": [
+        "DRILL-02",
+        "LATHE-03",
+        "MILL-03"
+      ],
       "absenteeism_prob": 0.03
+    },
+    {
+      "operator_id": "OP-021",
+      "name": "Operator_021",
+      "shift": "B",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-05"
+      ],
+      "absenteeism_prob": 0.041
+    },
+    {
+      "operator_id": "OP-022",
+      "name": "Operator_022",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-03",
+        "LATHE-03",
+        "MILL-02"
+      ],
+      "absenteeism_prob": 0.047
+    },
+    {
+      "operator_id": "OP-023",
+      "name": "Operator_023",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-04",
+        "LATHE-01"
+      ],
+      "absenteeism_prob": 0.022
+    },
+    {
+      "operator_id": "OP-024",
+      "name": "Operator_024",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-04",
+        "MILL-01"
+      ],
+      "absenteeism_prob": 0.025
+    },
+    {
+      "operator_id": "OP-025",
+      "name": "Operator_025",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-04",
+        "LATHE-01",
+        "LATHE-02"
+      ],
+      "absenteeism_prob": 0.022
+    },
+    {
+      "operator_id": "OP-026",
+      "name": "Operator_026",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-02",
+        "LATHE-05",
+        "MILL-01",
+        "MILL-03"
+      ],
+      "absenteeism_prob": 0.016
+    },
+    {
+      "operator_id": "OP-027",
+      "name": "Operator_027",
+      "shift": "B",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-03",
+        "MILL-02"
+      ],
+      "absenteeism_prob": 0.043
+    },
+    {
+      "operator_id": "OP-028",
+      "name": "Operator_028",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-02",
+        "DRILL-03"
+      ],
+      "absenteeism_prob": 0.013
+    },
+    {
+      "operator_id": "OP-029",
+      "name": "Operator_029",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-03",
+        "MILL-01"
+      ],
+      "absenteeism_prob": 0.032
+    },
+    {
+      "operator_id": "OP-030",
+      "name": "Operator_030",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-04",
+        "LATHE-03",
+        "MILL-01"
+      ],
+      "absenteeism_prob": 0.047
+    },
+    {
+      "operator_id": "OP-031",
+      "name": "Operator_031",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-03",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.02
+    },
+    {
+      "operator_id": "OP-032",
+      "name": "Operator_032",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-04",
+        "MILL-01"
+      ],
+      "absenteeism_prob": 0.014
+    },
+    {
+      "operator_id": "OP-033",
+      "name": "Operator_033",
+      "shift": "B",
+      "certified_machines": [
+        "LATHE-05",
+        "MILL-03"
+      ],
+      "absenteeism_prob": 0.019
+    },
+    {
+      "operator_id": "OP-034",
+      "name": "Operator_034",
+      "shift": "B",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-02",
+        "LATHE-03",
+        "MILL-02"
+      ],
+      "absenteeism_prob": 0.033
+    },
+    {
+      "operator_id": "OP-035",
+      "name": "Operator_035",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-03",
+        "LATHE-01",
+        "LATHE-03",
+        "LATHE-04"
+      ],
+      "absenteeism_prob": 0.045
+    },
+    {
+      "operator_id": "OP-036",
+      "name": "Operator_036",
+      "shift": "B",
+      "certified_machines": [
+        "LATHE-05",
+        "MILL-02"
+      ],
+      "absenteeism_prob": 0.01
+    },
+    {
+      "operator_id": "OP-037",
+      "name": "Operator_037",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-03",
+        "LATHE-03",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.011
+    },
+    {
+      "operator_id": "OP-038",
+      "name": "Operator_038",
+      "shift": "B",
+      "certified_machines": [
+        "LATHE-01",
+        "LATHE-05",
+        "MILL-01",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.034
+    },
+    {
+      "operator_id": "OP-039",
+      "name": "Operator_039",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-02",
+        "LATHE-01",
+        "LATHE-04",
+        "MILL-04"
+      ],
+      "absenteeism_prob": 0.031
+    },
+    {
+      "operator_id": "OP-040",
+      "name": "Operator_040",
+      "shift": "B",
+      "certified_machines": [
+        "DRILL-02",
+        "LATHE-01",
+        "LATHE-03",
+        "MILL-02"
+      ],
+      "absenteeism_prob": 0.026
     }
   ],
   "orders": [
     {
-      "order_id": "ORD-104",
+      "order_id": "ORD-101",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_C",
+      "quantity": 4194,
+      "due_date": "2026-09-04T06:00:00Z",
+      "daily_late_penalty": 164,
+      "unit_margin": 81,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 3.54
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 2.36
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 2.4
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.36
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-102",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_C",
+      "quantity": 912,
+      "due_date": "2026-09-01T14:00:00Z",
+      "daily_late_penalty": 169,
+      "unit_margin": 62,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 3.8
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 2.54
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.94
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.23
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-103",
       "customer_tier": "Tier-1",
       "part_family": "FAM_A",
-      "quantity": 3500,
+      "quantity": 4540,
+      "due_date": "2026-09-05T06:00:00Z",
+      "daily_late_penalty": 38044,
+      "unit_margin": 35,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 2.53
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 1.98
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.53
+        },
+        {
+          "op_seq": 4,
+          "type": "Drill",
+          "time_per_piece_mins": 1.21
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.72
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-104",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_B",
+      "quantity": 3492,
+      "due_date": "2026-08-31T22:00:00Z",
+      "daily_late_penalty": 12454,
+      "unit_margin": 44,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 2.49
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 3.05
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.56
+        },
+        {
+          "op_seq": 4,
+          "type": "Drill",
+          "time_per_piece_mins": 3.08
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.47
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-105",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_A",
+      "quantity": 5000,
+      "due_date": "2026-09-02T22:00:00Z",
+      "daily_late_penalty": 48139,
+      "unit_margin": 35,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 2.14
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 1.82
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.07
+        },
+        {
+          "op_seq": 4,
+          "type": "Drill",
+          "time_per_piece_mins": 3.71
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.55
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-106",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_B",
+      "quantity": 2075,
+      "due_date": "2026-08-28T14:00:00Z",
+      "daily_late_penalty": 41203,
+      "unit_margin": 40,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 3.77
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 1.91
+        },
+        {
+          "op_seq": 3,
+          "type": "Drill",
+          "time_per_piece_mins": 3.45
+        },
+        {
+          "op_seq": 4,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.38
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.31
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-107",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_A",
+      "quantity": 5000,
+      "due_date": "2026-09-01T14:00:00Z",
+      "daily_late_penalty": 27633,
+      "unit_margin": 38,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 2.79
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 4.52
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.49
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.24
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-108",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_A",
+      "quantity": 5000,
+      "due_date": "2026-09-06T22:00:00Z",
+      "daily_late_penalty": 13262,
+      "unit_margin": 39,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 3.7
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 4.32
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 2.39
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.58
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-109",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_A",
+      "quantity": 5000,
+      "due_date": "2026-08-29T22:00:00Z",
+      "daily_late_penalty": 45448,
+      "unit_margin": 39,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 1.22
+        },
+        {
+          "op_seq": 2,
+          "type": "Drill",
+          "time_per_piece_mins": 2.27
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 2.34
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.21
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-110",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_B",
+      "quantity": 918,
       "due_date": "2026-08-27T06:00:00Z",
-      "daily_late_penalty": 25000,
+      "daily_late_penalty": 973,
+      "unit_margin": 72,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 1.52
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 3.24
+        },
+        {
+          "op_seq": 3,
+          "type": "Drill",
+          "time_per_piece_mins": 2.68
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.49
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-111",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_B",
+      "quantity": 5000,
+      "due_date": "2026-09-06T22:00:00Z",
+      "daily_late_penalty": 16909,
       "unit_margin": 45,
       "routing": [
-        {"op_seq": 1, "type": "CNC Lathe", "time_per_piece_mins": 1.2},
-        {"op_seq": 2, "type": "Milling", "time_per_piece_mins": 2.5},
-        {"op_seq": 3, "type": "Grinding", "time_per_piece_mins": 0.8},
-        {"op_seq": 4, "type": "Inspection", "time_per_piece_mins": 0.5}
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 2.06
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 2.55
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.38
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.3
+        }
       ]
     },
     {
       "order_id": "ORD-112",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_C",
+      "quantity": 2015,
+      "due_date": "2026-09-02T14:00:00Z",
+      "daily_late_penalty": 17807,
+      "unit_margin": 46,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 1.93
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 3.11
+        },
+        {
+          "op_seq": 3,
+          "type": "Drill",
+          "time_per_piece_mins": 3.0
+        },
+        {
+          "op_seq": 4,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.06
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.48
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-113",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_A",
+      "quantity": 237,
+      "due_date": "2026-08-26T06:00:00Z",
+      "daily_late_penalty": 1030,
+      "unit_margin": 68,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 1.02
+        },
+        {
+          "op_seq": 2,
+          "type": "Drill",
+          "time_per_piece_mins": 2.39
+        },
+        {
+          "op_seq": 3,
+          "type": "Milling",
+          "time_per_piece_mins": 2.93
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.78
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-114",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_B",
+      "quantity": 3784,
+      "due_date": "2026-09-02T06:00:00Z",
+      "daily_late_penalty": 1005,
+      "unit_margin": 69,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 1.36
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 2.34
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 2.06
+        },
+        {
+          "op_seq": 4,
+          "type": "Drill",
+          "time_per_piece_mins": 1.52
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.59
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-115",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_D",
+      "quantity": 4643,
+      "due_date": "2026-08-27T14:00:00Z",
+      "daily_late_penalty": 1689,
+      "unit_margin": 77,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 3.96
+        },
+        {
+          "op_seq": 2,
+          "type": "Drill",
+          "time_per_piece_mins": 1.23
+        },
+        {
+          "op_seq": 3,
+          "type": "Milling",
+          "time_per_piece_mins": 2.74
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.27
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-116",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_A",
+      "quantity": 965,
+      "due_date": "2026-08-26T06:00:00Z",
+      "daily_late_penalty": 47198,
+      "unit_margin": 49,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 2.4
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 3.41
+        },
+        {
+          "op_seq": 3,
+          "type": "Drill",
+          "time_per_piece_mins": 2.78
+        },
+        {
+          "op_seq": 4,
+          "type": "Grinding",
+          "time_per_piece_mins": 2.07
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.22
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-117",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_B",
+      "quantity": 5000,
+      "due_date": "2026-09-07T06:00:00Z",
+      "daily_late_penalty": 24734,
+      "unit_margin": 49,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 1.77
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 3.58
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 0.9
+        },
+        {
+          "op_seq": 4,
+          "type": "Drill",
+          "time_per_piece_mins": 3.8
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.27
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-118",
+      "customer_tier": "Tier-1",
+      "part_family": "FAM_D",
+      "quantity": 5000,
+      "due_date": "2026-09-05T22:00:00Z",
+      "daily_late_penalty": 27053,
+      "unit_margin": 40,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 4.47
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 3.15
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 2.1
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.56
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-119",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_B",
+      "quantity": 2720,
+      "due_date": "2026-09-05T06:00:00Z",
+      "daily_late_penalty": 766,
+      "unit_margin": 56,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 2.72
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 1.21
+        },
+        {
+          "op_seq": 3,
+          "type": "Drill",
+          "time_per_piece_mins": 3.02
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.27
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-120",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_B",
+      "quantity": 3575,
+      "due_date": "2026-09-06T14:00:00Z",
+      "daily_late_penalty": 1308,
+      "unit_margin": 57,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 4.72
+        },
+        {
+          "op_seq": 2,
+          "type": "Drill",
+          "time_per_piece_mins": 1.38
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 0.88
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.24
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-121",
       "customer_tier": "Tier-2",
       "part_family": "FAM_C",
-      "quantity": 800,
-      "due_date": "2026-08-29T14:30:00Z",
-      "daily_late_penalty": 0,
-      "unit_margin": 65,
+      "quantity": 3294,
+      "due_date": "2026-09-03T06:00:00Z",
+      "daily_late_penalty": 1901,
+      "unit_margin": 85,
       "routing": [
-        {"op_seq": 1, "type": "CNC Lathe", "time_per_piece_mins": 3.0},
-        {"op_seq": 2, "type": "Drill", "time_per_piece_mins": 1.5},
-        {"op_seq": 3, "type": "Grinding", "time_per_piece_mins": 1.2}
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 3.23
+        },
+        {
+          "op_seq": 2,
+          "type": "Drill",
+          "time_per_piece_mins": 2.39
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.57
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.77
+        }
       ]
+    },
+    {
+      "order_id": "ORD-122",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_D",
+      "quantity": 1401,
+      "due_date": "2026-09-07T22:00:00Z",
+      "daily_late_penalty": 1023,
+      "unit_margin": 80,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 4.59
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 2.56
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.48
+        },
+        {
+          "op_seq": 4,
+          "type": "Drill",
+          "time_per_piece_mins": 2.98
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.2
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-123",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_B",
+      "quantity": 3075,
+      "due_date": "2026-08-29T14:00:00Z",
+      "daily_late_penalty": 1294,
+      "unit_margin": 68,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 1.01
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 4.34
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.84
+        },
+        {
+          "op_seq": 4,
+          "type": "Drill",
+          "time_per_piece_mins": 2.46
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.54
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-124",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_C",
+      "quantity": 990,
+      "due_date": "2026-09-03T14:00:00Z",
+      "daily_late_penalty": 1401,
+      "unit_margin": 66,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 2.52
+        },
+        {
+          "op_seq": 2,
+          "type": "Milling",
+          "time_per_piece_mins": 4.23
+        },
+        {
+          "op_seq": 3,
+          "type": "Drill",
+          "time_per_piece_mins": 1.63
+        },
+        {
+          "op_seq": 4,
+          "type": "Grinding",
+          "time_per_piece_mins": 1.37
+        },
+        {
+          "op_seq": 5,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.69
+        }
+      ]
+    },
+    {
+      "order_id": "ORD-125",
+      "customer_tier": "Tier-2",
+      "part_family": "FAM_A",
+      "quantity": 1599,
+      "due_date": "2026-08-26T06:00:00Z",
+      "daily_late_penalty": 1202,
+      "unit_margin": 69,
+      "routing": [
+        {
+          "op_seq": 1,
+          "type": "CNC Lathe",
+          "time_per_piece_mins": 3.15
+        },
+        {
+          "op_seq": 2,
+          "type": "Drill",
+          "time_per_piece_mins": 2.46
+        },
+        {
+          "op_seq": 3,
+          "type": "Grinding",
+          "time_per_piece_mins": 0.95
+        },
+        {
+          "op_seq": 4,
+          "type": "Inspection",
+          "time_per_piece_mins": 0.58
+        }
+      ]
+    }
+  ],
+  "breakdown_history": [
+    {
+      "breakdown_id": "BD-0001",
+      "machine_id": "LATHE-01",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 1.5,
+      "cause": "Tool failure"
+    },
+    {
+      "breakdown_id": "BD-0002",
+      "machine_id": "LATHE-01",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 1.6,
+      "cause": "Tool failure"
+    },
+    {
+      "breakdown_id": "BD-0003",
+      "machine_id": "LATHE-01",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 0.8,
+      "cause": "Electrical fault"
+    },
+    {
+      "breakdown_id": "BD-0004",
+      "machine_id": "LATHE-02",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 1.9,
+      "cause": "Tool failure"
+    },
+    {
+      "breakdown_id": "BD-0005",
+      "machine_id": "LATHE-02",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 1.8,
+      "cause": "Bearing failure"
+    },
+    {
+      "breakdown_id": "BD-0006",
+      "machine_id": "LATHE-03",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 1.7,
+      "cause": "Mechanical failure"
+    },
+    {
+      "breakdown_id": "BD-0007",
+      "machine_id": "LATHE-03",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 1.7,
+      "cause": "Electrical fault"
+    },
+    {
+      "breakdown_id": "BD-0008",
+      "machine_id": "LATHE-04",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 1.2,
+      "cause": "Mechanical failure"
+    },
+    {
+      "breakdown_id": "BD-0009",
+      "machine_id": "LATHE-05",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 1.9,
+      "cause": "Hydraulic issue"
+    },
+    {
+      "breakdown_id": "BD-0010",
+      "machine_id": "LATHE-05",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 2.5,
+      "cause": "Bearing failure"
+    },
+    {
+      "breakdown_id": "BD-0011",
+      "machine_id": "LATHE-05",
+      "machine_type": "CNC_LATHE",
+      "duration_hours": 2.5,
+      "cause": "Bearing failure"
+    },
+    {
+      "breakdown_id": "BD-0012",
+      "machine_id": "MILL-01",
+      "machine_type": "MILLING",
+      "duration_hours": 3.0,
+      "cause": "Electrical fault"
+    },
+    {
+      "breakdown_id": "BD-0013",
+      "machine_id": "MILL-01",
+      "machine_type": "MILLING",
+      "duration_hours": 3.5,
+      "cause": "Mechanical failure"
+    },
+    {
+      "breakdown_id": "BD-0014",
+      "machine_id": "MILL-02",
+      "machine_type": "MILLING",
+      "duration_hours": 2.7,
+      "cause": "Electrical fault"
+    },
+    {
+      "breakdown_id": "BD-0015",
+      "machine_id": "MILL-02",
+      "machine_type": "MILLING",
+      "duration_hours": 3.2,
+      "cause": "Hydraulic issue"
+    },
+    {
+      "breakdown_id": "BD-0016",
+      "machine_id": "DRILL-03",
+      "machine_type": "DRILL",
+      "duration_hours": 0.6,
+      "cause": "Preventive maintenance"
+    },
+    {
+      "breakdown_id": "BD-0017",
+      "machine_id": "DRILL-04",
+      "machine_type": "DRILL",
+      "duration_hours": 1.9,
+      "cause": "Mechanical failure"
+    },
+    {
+      "breakdown_id": "BD-0018",
+      "machine_id": "GRINDER-01",
+      "machine_type": "GRINDING",
+      "duration_hours": 7.7,
+      "cause": "Tool failure"
+    },
+    {
+      "breakdown_id": "BD-0019",
+      "machine_id": "GRINDER-01",
+      "machine_type": "GRINDING",
+      "duration_hours": 6.4,
+      "cause": "Mechanical failure"
+    },
+    {
+      "breakdown_id": "BD-0020",
+      "machine_id": "GRINDER-01",
+      "machine_type": "GRINDING",
+      "duration_hours": 6.6,
+      "cause": "Mechanical failure"
     }
   ]
 }

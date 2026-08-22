@@ -15,7 +15,7 @@ def validate_dataset_realism(dataset):
     machines = dataset.get("machines", [])
     assert len(machines) == 14, f"Expected 14 machines, got {len(machines)}"
     
-    grinders = [m for m in machines if m["type"] == "Grinding"]
+    grinders = [m for m in machines if m["type"] == "GRINDING"]
     assert len(grinders) == 1, f"Expected exactly 1 grinding machine, got {len(grinders)}"
 
     operators = dataset.get("operators", [])

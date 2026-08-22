@@ -8,122 +8,226 @@
     "machines",
     "changeover_matrix",
     "operators",
-    "orders"
+    "orders",
+    "breakdown_history"
   ],
   "properties": {
     "_metadata": {
       "type": "object",
+      "required": [
+        "version",
+        "seed",
+        "validation_status"
+      ],
       "properties": {
-        "version": { "type": "string" },
-        "seed": { "type": "integer" },
-        "generated_at": { "type": "string", "format": "date-time" },
-        "validation_status": { "type": "string", "enum": ["PASSED", "PENDING", "FAILED"] }
+        "version": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": [
+            "PASSED",
+            "PENDING",
+            "FAILED"
+          ]
+        }
       },
-      "required": ["seed", "validation_status"]
+      "additionalProperties": false
     },
+
     "shop_config": {
       "type": "object",
+      "required": [
+        "shifts",
+        "generator_cost_differential",
+        "overtime_rate_multiplier"
+      ],
       "properties": {
         "shifts": {
           "type": "object",
-          "patternProperties": {
-            "^[A-C]$": {
-              "type": "object",
-              "properties": {
-                "start": { "type": "string" },
-                "end": { "type": "string" }
-              },
-              "required": ["start", "end"]
+          "required": [
+            "A",
+            "B"
+          ],
+          "properties": {
+            "A": {
+              "$ref": "#/$defs/shift"
+            },
+            "B": {
+              "$ref": "#/$defs/shift"
             }
-          }
+          },
+          "additionalProperties": false
         },
-        "generator_cost_differential": { "type": "number" },
-        "overtime_rate_multiplier": { "type": "number" }
+        "generator_cost_differential": {
+          "type": "number",
+          "minimum": 0
+        },
+        "overtime_rate_multiplier": {
+          "type": "number",
+          "minimum": 1
+        }
       },
-      "required": ["shifts", "generator_cost_differential", "overtime_rate_multiplier"]
+      "additionalProperties": false
     },
+
     "machines": {
       "type": "array",
       "minItems": 14,
       "maxItems": 14,
       "items": {
         "type": "object",
+        "required": [
+          "machine_id",
+          "type",
+          "hourly_cost",
+          "mtbf_hrs",
+          "mttr_hrs",
+          "status"
+        ],
         "properties": {
-          "machine_id": { "type": "string" },
+          "machine_id": {
+            "type": "string",
+            "minLength": 1
+          },
           "type": {
             "type": "string",
-            "enum": ["CNC Lathe", "Milling", "Drill", "Grinding"]
+            "enum": [
+              "CNC_LATHE",
+              "MILLING",
+              "DRILL",
+              "GRINDING"
+            ]
           },
-          "hourly_cost": { "type": "number", "minimum": 0 },
-          "mtbf_hrs": { "type": "number", "minimum": 0 },
-          "mttr_hrs": { "type": "number", "minimum": 0 }
+          "hourly_cost": {
+            "type": "number",
+            "minimum": 0
+          },
+          "mtbf_hrs": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "mttr_hrs": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "DOWN",
+              "MAINTENANCE"
+            ]
+          }
         },
-        "required": ["machine_id", "type", "hourly_cost", "mtbf_hrs", "mttr_hrs"]
+        "additionalProperties": false
       }
     },
+
     "changeover_matrix": {
       "type": "object",
+      "required": [
+        "matrix",
+        "part_families"
+      ],
       "properties": {
-        "SAME_FAMILY_MINS": { "type": "number", "minimum": 0 },
-        "CROSS_FAMILY_MINS": { "type": "number", "minimum": 0 },
+        "matrix": {
+          "type": "object",
+          "required": [
+            "FAM_A",
+            "FAM_B",
+            "FAM_C",
+            "FAM_D"
+          ],
+          "properties": {
+            "FAM_A": {
+              "$ref": "#/$defs/changeoverRow"
+            },
+            "FAM_B": {
+              "$ref": "#/$defs/changeoverRow"
+            },
+            "FAM_C": {
+              "$ref": "#/$defs/changeoverRow"
+            },
+            "FAM_D": {
+              "$ref": "#/$defs/changeoverRow"
+            }
+          },
+          "additionalProperties": false
+        },
         "part_families": {
           "type": "array",
-          "items": { "type": "string" },
-          "minItems": 1
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "enum": [
+              "FAM_A",
+              "FAM_B",
+              "FAM_C",
+              "FAM_D"
+            ]
+          },
+          "uniqueItems": true
         }
       },
-      "required": ["SAME_FAMILY_MINS", "CROSS_FAMILY_MINS", "part_families"]
+      "additionalProperties": false
     },
+
     "operators": {
       "type": "array",
       "minItems": 40,
       "maxItems": 40,
       "items": {
         "type": "object",
+        "required": [
+          "operator_id",
+          "name",
+          "shift",
+          "certified_machines",
+          "absenteeism_prob"
+        ],
         "properties": {
-          "operator_id": { "type": "string" },
-          "name": { "type": "string" },
-          "shift": { "type": "string", "enum": ["A", "B", "C"] },
+          "operator_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "shift": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B"
+            ]
+          },
           "certified_machines": {
             "type": "array",
-            "items": { "type": "string" }
-          },
-          "absenteeism_prob": { "type": "number", "minimum": 0, "maximum": 1 }
-        },
-        "required": ["operator_id", "shift", "certified_machines"]
-      }
-    },
-    "orders": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "order_id": { "type": "string" },
-          "customer_tier": { "type": "string", "enum": ["Tier-1", "Tier-2"] },
-          "part_family": { "type": "string" },
-          "quantity": {
-            "type": "integer",
-            "minimum": 200,
-            "maximum": 5000
-          },
-          "due_date": { "type": "string", "format": "date-time" },
-          "daily_late_penalty": { "type": "number", "minimum": 0 },
-          "unit_margin": { "type": "number", "minimum": 0 },
-          "routing": {
-            "type": "array",
-            "minItems": 3,
-            "maxItems": 6,
+            "minItems": 1,
             "items": {
-              "type": "object",
-              "properties": {
-                "op_seq": { "type": "integer", "minimum": 1 },
-                "type": { "type": "string" },
-                "time_per_piece_mins": { "type": "number", "exclusiveMinimum": 0 }
-              },
-              "required": ["op_seq", "type", "time_per_piece_mins"]
-            }
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "absenteeism_prob": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
           }
         },
+        "additionalProperties": false
+      }
+    },
+
+    "orders": {
+      "type": "array",
+      "minItems": 25,
+      "maxItems": 25,
+      "items": {
+        "type": "object",
         "required": [
           "order_id",
           "customer_tier",
@@ -131,9 +235,176 @@
           "quantity",
           "due_date",
           "daily_late_penalty",
+          "unit_margin",
           "routing"
-        ]
+        ],
+        "properties": {
+          "order_id": {
+            "type": "string"
+          },
+          "customer_tier": {
+            "type": "string",
+            "enum": [
+              "Tier-1",
+              "Tier-2"
+            ]
+          },
+          "part_family": {
+            "type": "string",
+            "enum": [
+              "FAM_A",
+              "FAM_B",
+              "FAM_C",
+              "FAM_D"
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 200,
+            "maximum": 5000
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "daily_late_penalty": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit_margin": {
+            "type": "number",
+            "minimum": 0
+          },
+          "routing": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 6,
+            "items": {
+              "$ref": "#/$defs/operation"
+            }
+          }
+        },
+        "additionalProperties": false
       }
+    },
+
+    "breakdown_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "breakdown_id",
+          "machine_id",
+          "machine_type",
+          "duration_hours",
+          "cause"
+        ],
+        "properties": {
+          "breakdown_id": {
+            "type": "string"
+          },
+          "machine_id": {
+            "type": "string"
+          },
+          "machine_type": {
+            "type": "string",
+            "enum": [
+              "CNC_LATHE",
+              "MILLING",
+              "DRILL",
+              "GRINDING"
+            ]
+          },
+          "duration_hours": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "cause": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+
+  "$defs": {
+    "shift": {
+      "type": "object",
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "end": {
+          "type": "string",
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "changeoverRow": {
+      "type": "object",
+      "required": [
+        "FAM_A",
+        "FAM_B",
+        "FAM_C",
+        "FAM_D"
+      ],
+      "properties": {
+        "FAM_A": {
+          "type": "number",
+          "minimum": 0
+        },
+        "FAM_B": {
+          "type": "number",
+          "minimum": 0
+        },
+        "FAM_C": {
+          "type": "number",
+          "minimum": 0
+        },
+        "FAM_D": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "operation": {
+      "type": "object",
+      "required": [
+        "op_seq",
+        "type",
+        "time_per_piece_mins"
+      ],
+      "properties": {
+        "op_seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "CNC Lathe",
+            "Milling",
+            "Drill",
+            "Grinding",
+            "Inspection"
+          ]
+        },
+        "time_per_piece_mins": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": false
     }
   }
 }
