@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class Machine:
     machine_id: str
@@ -7,3 +8,4 @@ class Machine:
     hourly_cost: float
     mtbf_hrs: float
     mttr_hrs: float
+    status: str
