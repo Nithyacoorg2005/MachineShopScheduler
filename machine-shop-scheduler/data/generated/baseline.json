@@ -623,22 +623,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 3.54
+          "time_per_piece_mins": 0.251
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 2.36
+          "time_per_piece_mins": 0.202
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.2414
+          "time_per_piece_mins": 0.2391
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.36
+          "time_per_piece_mins": 0.036
         }
       ]
     },
@@ -654,22 +654,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 3.8
+          "time_per_piece_mins": 0.269
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 2.54
+          "time_per_piece_mins": 0.216
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1951
+          "time_per_piece_mins": 0.1935
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.23
+          "time_per_piece_mins": 0.023
         }
       ]
     },
@@ -685,27 +685,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 2.53
+          "time_per_piece_mins": 0.183
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 1.98
+          "time_per_piece_mins": 0.174
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1539
+          "time_per_piece_mins": 0.1548
         },
         {
           "op_seq": 4,
           "type": "Drill",
-          "time_per_piece_mins": 1.21
+          "time_per_piece_mins": 0.064
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.72
+          "time_per_piece_mins": 0.072
         }
       ]
     },
@@ -721,27 +721,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 2.49
+          "time_per_piece_mins": 0.181
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 3.05
+          "time_per_piece_mins": 0.254
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1569
+          "time_per_piece_mins": 0.1562
         },
         {
           "op_seq": 4,
           "type": "Drill",
-          "time_per_piece_mins": 3.08
+          "time_per_piece_mins": 0.189
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.47
+          "time_per_piece_mins": 0.047
         }
       ]
     },
@@ -757,27 +757,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 2.14
+          "time_per_piece_mins": 0.157
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 1.82
+          "time_per_piece_mins": 0.162
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1076
+          "time_per_piece_mins": 0.1092
         },
         {
           "op_seq": 4,
           "type": "Drill",
-          "time_per_piece_mins": 3.71
+          "time_per_piece_mins": 0.23
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.55
+          "time_per_piece_mins": 0.055
         }
       ]
     },
@@ -793,27 +793,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 3.77
+          "time_per_piece_mins": 0.267
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 1.91
+          "time_per_piece_mins": 0.168
         },
         {
           "op_seq": 3,
           "type": "Drill",
-          "time_per_piece_mins": 3.45
+          "time_per_piece_mins": 0.213
         },
         {
           "op_seq": 4,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1388
+          "time_per_piece_mins": 0.1396
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.31
+          "time_per_piece_mins": 0.031
         }
       ]
     },
@@ -829,22 +829,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 2.79
+          "time_per_piece_mins": 0.201
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 4.52
+          "time_per_piece_mins": 0.364
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1499
+          "time_per_piece_mins": 0.1506
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.24
+          "time_per_piece_mins": 0.024
         }
       ]
     },
@@ -860,22 +860,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 3.7
+          "time_per_piece_mins": 0.262
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 4.32
+          "time_per_piece_mins": 0.349
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.2404
+          "time_per_piece_mins": 0.2377
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.58
+          "time_per_piece_mins": 0.058
         }
       ]
     },
@@ -891,22 +891,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 1.22
+          "time_per_piece_mins": 0.095
         },
         {
           "op_seq": 2,
           "type": "Drill",
-          "time_per_piece_mins": 2.27
+          "time_per_piece_mins": 0.135
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.2354
+          "time_per_piece_mins": 0.2335
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.21
+          "time_per_piece_mins": 0.021
         }
       ]
     },
@@ -922,22 +922,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 1.52
+          "time_per_piece_mins": 0.115
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 3.24
+          "time_per_piece_mins": 0.268
         },
         {
           "op_seq": 3,
           "type": "Drill",
-          "time_per_piece_mins": 2.68
+          "time_per_piece_mins": 0.162
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.49
+          "time_per_piece_mins": 0.049
         }
       ]
     },
@@ -953,22 +953,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 2.06
+          "time_per_piece_mins": 0.151
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 2.55
+          "time_per_piece_mins": 0.216
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1388
+          "time_per_piece_mins": 0.1396
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.3
+          "time_per_piece_mins": 0.03
         }
       ]
     },
@@ -984,27 +984,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 1.93
+          "time_per_piece_mins": 0.143
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 3.11
+          "time_per_piece_mins": 0.258
         },
         {
           "op_seq": 3,
           "type": "Drill",
-          "time_per_piece_mins": 3.0
+          "time_per_piece_mins": 0.183
         },
         {
           "op_seq": 4,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1066
+          "time_per_piece_mins": 0.1078
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.48
+          "time_per_piece_mins": 0.048
         }
       ]
     },
@@ -1020,22 +1020,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 1.02
+          "time_per_piece_mins": 0.081
         },
         {
           "op_seq": 2,
           "type": "Drill",
-          "time_per_piece_mins": 2.39
+          "time_per_piece_mins": 0.143
         },
         {
           "op_seq": 3,
           "type": "Milling",
-          "time_per_piece_mins": 2.93
+          "time_per_piece_mins": 0.245
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.78
+          "time_per_piece_mins": 0.078
         }
       ]
     },
@@ -1051,27 +1051,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 1.36
+          "time_per_piece_mins": 0.105
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 2.34
+          "time_per_piece_mins": 0.201
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.2072
+          "time_per_piece_mins": 0.2059
         },
         {
           "op_seq": 4,
           "type": "Drill",
-          "time_per_piece_mins": 1.52
+          "time_per_piece_mins": 0.085
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.59
+          "time_per_piece_mins": 0.059
         }
       ]
     },
@@ -1087,22 +1087,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 3.96
+          "time_per_piece_mins": 0.28
         },
         {
           "op_seq": 2,
           "type": "Drill",
-          "time_per_piece_mins": 1.23
+          "time_per_piece_mins": 0.066
         },
         {
           "op_seq": 3,
           "type": "Milling",
-          "time_per_piece_mins": 2.74
+          "time_per_piece_mins": 0.23
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.27
+          "time_per_piece_mins": 0.027
         }
       ]
     },
@@ -1118,27 +1118,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 2.4
+          "time_per_piece_mins": 0.175
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 3.41
+          "time_per_piece_mins": 0.28
         },
         {
           "op_seq": 3,
           "type": "Drill",
-          "time_per_piece_mins": 2.78
+          "time_per_piece_mins": 0.169
         },
         {
           "op_seq": 4,
           "type": "Grinding",
-          "time_per_piece_mins": 0.2082
+          "time_per_piece_mins": 0.2073
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.22
+          "time_per_piece_mins": 0.022
         }
       ]
     },
@@ -1154,27 +1154,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 1.77
+          "time_per_piece_mins": 0.132
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 3.58
+          "time_per_piece_mins": 0.293
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.0905
+          "time_per_piece_mins": 0.0926
         },
         {
           "op_seq": 4,
           "type": "Drill",
-          "time_per_piece_mins": 3.8
+          "time_per_piece_mins": 0.237
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.27
+          "time_per_piece_mins": 0.027
         }
       ]
     },
@@ -1190,22 +1190,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 4.47
+          "time_per_piece_mins": 0.314
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 3.15
+          "time_per_piece_mins": 0.261
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.2112
+          "time_per_piece_mins": 0.2101
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.56
+          "time_per_piece_mins": 0.056
         }
       ]
     },
@@ -1221,22 +1221,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 2.72
+          "time_per_piece_mins": 0.196
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 1.21
+          "time_per_piece_mins": 0.116
         },
         {
           "op_seq": 3,
           "type": "Drill",
-          "time_per_piece_mins": 3.02
+          "time_per_piece_mins": 0.184
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.27
+          "time_per_piece_mins": 0.027
         }
       ]
     },
@@ -1252,22 +1252,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 4.72
+          "time_per_piece_mins": 0.331
         },
         {
           "op_seq": 2,
           "type": "Drill",
-          "time_per_piece_mins": 1.38
+          "time_per_piece_mins": 0.075
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.0885
+          "time_per_piece_mins": 0.0912
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.24
+          "time_per_piece_mins": 0.024
         }
       ]
     },
@@ -1283,22 +1283,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 3.23
+          "time_per_piece_mins": 0.231
         },
         {
           "op_seq": 2,
           "type": "Drill",
-          "time_per_piece_mins": 2.39
+          "time_per_piece_mins": 0.143
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1579
+          "time_per_piece_mins": 0.1589
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.77
+          "time_per_piece_mins": 0.077
         }
       ]
     },
@@ -1314,27 +1314,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 4.59
+          "time_per_piece_mins": 0.323
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 2.56
+          "time_per_piece_mins": 0.217
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1489
+          "time_per_piece_mins": 0.1492
         },
         {
           "op_seq": 4,
           "type": "Drill",
-          "time_per_piece_mins": 2.98
+          "time_per_piece_mins": 0.182
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.2
+          "time_per_piece_mins": 0.02
         }
       ]
     },
@@ -1350,27 +1350,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 1.01
+          "time_per_piece_mins": 0.081
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 4.34
+          "time_per_piece_mins": 0.35
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1851
+          "time_per_piece_mins": 0.1838
         },
         {
           "op_seq": 4,
           "type": "Drill",
-          "time_per_piece_mins": 2.46
+          "time_per_piece_mins": 0.147
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.54
+          "time_per_piece_mins": 0.054
         }
       ]
     },
@@ -1386,27 +1386,27 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 2.52
+          "time_per_piece_mins": 0.183
         },
         {
           "op_seq": 2,
           "type": "Milling",
-          "time_per_piece_mins": 4.23
+          "time_per_piece_mins": 0.342
         },
         {
           "op_seq": 3,
           "type": "Drill",
-          "time_per_piece_mins": 1.63
+          "time_per_piece_mins": 0.092
         },
         {
           "op_seq": 4,
           "type": "Grinding",
-          "time_per_piece_mins": 0.1378
+          "time_per_piece_mins": 0.1382
         },
         {
           "op_seq": 5,
           "type": "Inspection",
-          "time_per_piece_mins": 0.69
+          "time_per_piece_mins": 0.069
         }
       ]
     },
@@ -1422,22 +1422,22 @@
         {
           "op_seq": 1,
           "type": "CNC Lathe",
-          "time_per_piece_mins": 3.15
+          "time_per_piece_mins": 0.225
         },
         {
           "op_seq": 2,
           "type": "Drill",
-          "time_per_piece_mins": 2.46
+          "time_per_piece_mins": 0.147
         },
         {
           "op_seq": 3,
           "type": "Grinding",
-          "time_per_piece_mins": 0.0956
+          "time_per_piece_mins": 0.0981
         },
         {
           "op_seq": 4,
           "type": "Inspection",
-          "time_per_piece_mins": 0.58
+          "time_per_piece_mins": 0.058
         }
       ]
     }

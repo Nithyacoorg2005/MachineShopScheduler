@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-
-from api.routes import router
-from api.database import engine, Base
+from .routes import router
+from .database import engine, Base
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Machine Shop Scheduler API")
+app = FastAPI(
+    title="Machine Shop Scheduler API"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,7 +17,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router, prefix="/api")
+app.include_router(
+    router,
+    prefix="/api"
+)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import uvicorn
+
+    uvicorn.run(
+        "src.api.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )

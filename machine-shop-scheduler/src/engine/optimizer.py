@@ -266,8 +266,11 @@ class Optimizer:
                 )
 
                 duration = baseline_operation.get(
+                    "remaining_duration_minutes",
+                    baseline_operation.get(
                     "duration_minutes",
                     0
+                    )
                 )
 
                 if operation_type == "Inspection":

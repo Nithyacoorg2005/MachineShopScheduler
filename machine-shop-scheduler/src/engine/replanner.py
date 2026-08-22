@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import copy
 
 from .optimizer import Optimizer
@@ -25,6 +25,12 @@ class Replanner:
             value.replace("Z", "+00:00")
         )
 
+    def _format_time(self, value):
+        return value.isoformat().replace(
+            "+00:00",
+            "Z"
+        )
+
     def _classify_schedule(self, current_time):
         completed = []
         in_progress = []
@@ -34,42 +40,96 @@ class Replanner:
             start = self._parse_time(
                 operation["start_time"]
             )
+
             end = self._parse_time(
                 operation["end_time"]
             )
 
             if end <= current_time:
                 completed.append(operation)
+
             elif start <= current_time < end:
                 in_progress.append(operation)
+
             else:
                 future.append(operation)
 
         return completed, in_progress, future
+
+    def _create_interrupted_operation(
+        self,
+        operation,
+        current_time
+    ):
+        start = self._parse_time(
+            operation["start_time"]
+        )
+
+        end = self._parse_time(
+            operation["end_time"]
+        )
+
+        elapsed_minutes = max(
+            0,
+            (
+                current_time - start
+            ).total_seconds() / 60
+        )
+
+        original_duration = operation.get(
+            "duration_minutes",
+            (
+                end - start
+            ).total_seconds() / 60
+        )
+
+        remaining_minutes = max(
+            0,
+            original_duration -
+            elapsed_minutes
+        )
+
+        interrupted = copy.deepcopy(
+            operation
+        )
+
+        interrupted["start_time"] = (
+            self._format_time(start)
+        )
+
+        interrupted["end_time"] = (
+            self._format_time(current_time)
+        )
+
+        interrupted["duration_minutes"] = (
+            elapsed_minutes
+        )
+
+        interrupted["remaining_duration_minutes"] = (
+            remaining_minutes
+        )
+
+        interrupted["status"] = (
+            "INTERRUPTED"
+        )
+
+        interrupted["replanned"] = True
+
+        return interrupted
 
     def _apply_machine_breakdown(
         self,
         machines,
         event
     ):
-        target_id = event["target_id"]
+        return machines
 
-        for machine in machines:
-            if machine.machine_id == target_id:
-                machine.status = "DOWN"
-
-    def _remove_absent_operator(
+    def _apply_operator_absence(
         self,
         operators,
         event
     ):
-        target_id = event["target_id"]
-
-        return [
-            operator
-            for operator in operators
-            if operator.operator_id != target_id
-        ]
+        return operators
 
     def _affected_operations(
         self,
@@ -83,9 +143,17 @@ class Replanner:
         delayed_orders = set()
         rework_orders = set()
 
-        for event in scenario.get("events", []):
-            event_type = event.get("event_type")
-            target_id = event.get("target_id")
+        for event in scenario.get(
+            "events",
+            []
+        ):
+            event_type = event.get(
+                "event_type"
+            )
+
+            target_id = event.get(
+                "target_id"
+            )
 
             if event_type == "MACHINE_BREAKDOWN":
                 machine_ids.add(target_id)
@@ -105,19 +173,27 @@ class Replanner:
                 operation["op_seq"]
             )
 
-            if operation.get("machine_id") in machine_ids:
+            if operation.get(
+                "machine_id"
+            ) in machine_ids:
                 affected.add(key)
                 continue
 
-            if operation.get("operator_id") in operator_ids:
+            if operation.get(
+                "operator_id"
+            ) in operator_ids:
                 affected.add(key)
                 continue
 
-            if operation.get("order_id") in delayed_orders:
+            if operation.get(
+                "order_id"
+            ) in delayed_orders:
                 affected.add(key)
                 continue
 
-            if operation.get("order_id") in rework_orders:
+            if operation.get(
+                "order_id"
+            ) in rework_orders:
                 affected.add(key)
 
         return affected
@@ -136,7 +212,29 @@ class Replanner:
             ) not in affected_keys
         ]
 
-    def apply_scenario(self, scenario):
+    def _add_downtime_constraints(
+        self,
+        optimizer,
+        scenario
+    ):
+        for event in scenario.get(
+            "events",
+            []
+        ):
+            if event.get(
+                "event_type"
+            ) == "MACHINE_BREAKDOWN":
+
+                optimizer.set_downtime(
+                    event["target_id"],
+                    event["start_time"],
+                    event["duration_hours"]
+                )
+
+    def apply_scenario(
+        self,
+        scenario
+    ):
         current_time = self._parse_time(
             scenario["context"]["current_time"]
         )
@@ -147,7 +245,17 @@ class Replanner:
             )
         )
 
-        frozen = completed + in_progress
+        interrupted = []
+
+        for operation in in_progress:
+            interrupted.append(
+                self._create_interrupted_operation(
+                    operation,
+                    current_time
+                )
+            )
+
+        frozen = completed + interrupted
 
         modified_machines = copy.deepcopy(
             self.machines
@@ -157,27 +265,39 @@ class Replanner:
             self.operators
         )
 
-        for event in scenario.get("events", []):
-            event_type = event.get("event_type")
-
-            if event_type == "MACHINE_BREAKDOWN":
-                self._apply_machine_breakdown(
-                    modified_machines,
-                    event
-                )
-
-            elif event_type == "OPERATOR_ABSENCE":
-                modified_operators = (
-                    self._remove_absent_operator(
-                        modified_operators,
-                        event
-                    )
-                )
-
         affected_keys = self._affected_operations(
             future,
             scenario
         )
+
+        for event in scenario.get(
+            "events",
+            []
+        ):
+            if event.get(
+                "event_type"
+            ) == "MACHINE_BREAKDOWN":
+
+                machine_id = event[
+                    "target_id"
+                ]
+
+                for operation in future:
+                    if (
+                        operation.get(
+                            "machine_id"
+                        ) == machine_id
+                    ):
+                        affected_keys.add(
+                            (
+                                operation[
+                                    "order_id"
+                                ],
+                                operation[
+                                    "op_seq"
+                                ]
+                            )
+                        )
 
         preserved = self._preserve_unaffected(
             future,
@@ -185,26 +305,23 @@ class Replanner:
         )
 
         optimizer = Optimizer(
-        modified_machines,
-        modified_operators,
-        self.config
-)
+            modified_machines,
+            modified_operators,
+            self.config
+        )
 
-        for event in scenario.get("events", []):
-          if event.get("event_type") == "MACHINE_BREAKDOWN":
-            optimizer.set_downtime(
-            event["target_id"],
-            event["start_time"],
-            event["duration_hours"]
+        self._add_downtime_constraints(
+            optimizer,
+            scenario
         )
 
         replanned, _ = optimizer.optimize(
-        orders=self.orders,
-        baseline_schedule=future,
-        locked_operations=frozen,
-        affected_operation_keys=affected_keys,
-        current_time=current_time
-)
+            orders=self.orders,
+            baseline_schedule=future,
+            locked_operations=frozen,
+            affected_operation_keys=affected_keys,
+            current_time=current_time
+        )
 
         final_by_key = {}
 
@@ -245,7 +362,8 @@ class Replanner:
         )
 
         final_schedule.sort(
-            key=lambda operation: self._parse_time(
+            key=lambda operation:
+            self._parse_time(
                 operation["start_time"]
             )
         )
@@ -266,15 +384,20 @@ class Replanner:
             for operation in final_schedule
         }
 
-        missing = baseline_keys - final_keys
+        missing = (
+            baseline_keys -
+            final_keys
+        )
 
         if missing:
             raise RuntimeError(
-                f"Replanning lost baseline operations: "
+                "Replanning lost baseline operations: "
                 f"{sorted(missing)}"
             )
 
-        if len(final_schedule) != len(final_keys):
+        if len(final_schedule) != len(
+            final_keys
+        ):
             raise RuntimeError(
                 "Final schedule contains duplicate operation keys"
             )
@@ -285,9 +408,14 @@ class Replanner:
             self.config
         )
 
-        total_cost = evaluator.evaluate_total_cost(
-            final_schedule,
-            baseline_schedule=self.baseline_schedule
+        total_cost = (
+            evaluator.evaluate_total_cost(
+                final_schedule,
+                baseline_schedule=self.baseline_schedule
+            )
         )
 
-        return final_schedule, total_cost
+        return (
+            final_schedule,
+            total_cost
+        )

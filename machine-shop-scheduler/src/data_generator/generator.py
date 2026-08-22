@@ -143,22 +143,16 @@ def generate_changeover_matrix(rng):
 
 def generate_operation_time(operation_type, rng):
     ranges = {
-        "CNC Lathe": (1.0, 5.0),
-        "Milling": (1.0, 5.0),
-        "Drill": (1.0, 4.0),
-        "Grinding": (0.8, 2.5),
-        "Inspection": (0.2, 0.8),
+        "CNC Lathe": (0.08, 0.35),
+        "Milling": (0.10, 0.40),
+        "Drill": (0.05, 0.25),
+        "Grinding": (0.06, 0.18),
+        "Inspection": (0.02, 0.08),
     }
 
     minimum, maximum = ranges[operation_type]
 
-    return round(
-        rng.uniform(
-            minimum,
-            maximum
-        ),
-        2
-    )
+    return round(rng.uniform(minimum, maximum), 3)
 
 
 def generate_routing(rng):
