@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import copy
 
 from .optimizer import Optimizer
@@ -85,8 +85,7 @@ class Replanner:
 
         remaining_minutes = max(
             0,
-            original_duration -
-            elapsed_minutes
+            original_duration - elapsed_minutes
         )
 
         interrupted = copy.deepcopy(
@@ -109,10 +108,7 @@ class Replanner:
             remaining_minutes
         )
 
-        interrupted["status"] = (
-            "INTERRUPTED"
-        )
-
+        interrupted["status"] = "INTERRUPTED"
         interrupted["replanned"] = True
 
         return interrupted
@@ -122,6 +118,13 @@ class Replanner:
         machines,
         event
     ):
+        target_id = event["target_id"]
+
+        for machine in machines:
+            if machine.machine_id == target_id:
+                if hasattr(machine, "status"):
+                    machine.status = "DOWN"
+
         return machines
 
     def _apply_operator_absence(
@@ -129,7 +132,13 @@ class Replanner:
         operators,
         event
     ):
-        return operators
+        target_id = event["target_id"]
+
+        return [
+            operator
+            for operator in operators
+            if operator.operator_id != target_id
+        ]
 
     def _affected_operations(
         self,
@@ -274,9 +283,16 @@ class Replanner:
             "events",
             []
         ):
-            if event.get(
+            event_type = event.get(
                 "event_type"
-            ) == "MACHINE_BREAKDOWN":
+            )
+
+            if event_type == "MACHINE_BREAKDOWN":
+
+                self._apply_machine_breakdown(
+                    modified_machines,
+                    event
+                )
 
                 machine_id = event[
                     "target_id"
@@ -290,14 +306,19 @@ class Replanner:
                     ):
                         affected_keys.add(
                             (
-                                operation[
-                                    "order_id"
-                                ],
-                                operation[
-                                    "op_seq"
-                                ]
+                                operation["order_id"],
+                                operation["op_seq"]
                             )
                         )
+
+            elif event_type == "OPERATOR_ABSENCE":
+
+                modified_operators = (
+                    self._apply_operator_absence(
+                        modified_operators,
+                        event
+                    )
+                )
 
         preserved = self._preserve_unaffected(
             future,
@@ -402,18 +423,35 @@ class Replanner:
                 "Final schedule contains duplicate operation keys"
             )
 
+        self.config["changeover_matrix"] = (
+            self.config.get(
+                "changeover_matrix",
+                {}
+            )
+        )
+
+        self.config["replan_change_penalty_lambda"] = (
+            self.config.get(
+                "replan_change_penalty_lambda",
+                500
+            )
+        )
+
         evaluator = CostEvaluator(
             self.orders,
             modified_operators,
-            self.config
+            self.config,
+            self.machines
         )
 
-        total_cost = (
-            evaluator.evaluate_total_cost(
-                final_schedule,
-                baseline_schedule=self.baseline_schedule
-            )
+        cost_components = evaluator.evaluate_components(
+            final_schedule,
+            baseline_schedule=self.baseline_schedule
         )
+
+        total_cost = cost_components[
+            "total_cost"
+        ]
 
         return (
             final_schedule,
