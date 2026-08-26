@@ -642,6 +642,7 @@ export default function Dashboard() {
                     costBreakdown={
                       result.costBreakdown
                     }
+                  />
                   )}
               </aside>
             </section>
