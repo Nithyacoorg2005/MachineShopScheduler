@@ -16,57 +16,30 @@ export interface ScenarioPanelProps {
   currentTime?: string;
   activeShift?: string;
   events: ScenarioPanelEvent[];
-
   onRun?: () => Promise<void> | void;
   onClose?: () => void;
-
   running?: boolean;
   disabled?: boolean;
 }
 
 function formatEventType(value: string) {
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) =>
-      char.toUpperCase()
-    );
+  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function formatDate(value?: string) {
   if (!value) return "—";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: false,
   });
 }
 
 function formatDuration(hours?: number) {
-  if (
-    hours === undefined ||
-    hours === null
-  ) {
-    return "—";
-  }
-
-  if (hours < 1) {
-    return `${Math.round(hours * 60)} min`;
-  }
-
-  if (Number.isInteger(hours)) {
-    return `${hours} hr`;
-  }
-
+  if (hours === undefined || hours === null) return "—";
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  if (Number.isInteger(hours)) return `${hours} hr`;
   return `${hours.toFixed(1)} hr`;
 }
 
@@ -82,309 +55,139 @@ export default function ScenarioPanel({
   running = false,
   disabled = false,
 }: ScenarioPanelProps) {
-  const [expandedEvent, setExpandedEvent] =
-    useState<number | null>(null);
+  const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
 
   const eventCount = events.length;
 
-  const eventSummary = useMemo(() => {
-    const machineEvents = events.filter(
-      (event) =>
-        event.event_type ===
-        "MACHINE_BREAKDOWN"
-    ).length;
-
-    const operatorEvents = events.filter(
-      (event) =>
-        event.event_type ===
-        "OPERATOR_ABSENCE"
-    ).length;
-
-    return {
-      machineEvents,
-      operatorEvents,
-    };
-  }, [events]);
+  const eventSummary = useMemo(() => ({
+    machineEvents:  events.filter((e) => e.event_type === "MACHINE_BREAKDOWN").length,
+    operatorEvents: events.filter((e) => e.event_type === "OPERATOR_ABSENCE").length,
+  }), [events]);
 
   const handleRun = async () => {
-    if (
-      running ||
-      disabled ||
-      !onRun
-    ) {
-      return;
-    }
-
+    if (running || disabled || !onRun) return;
     await onRun();
   };
 
   return (
     <>
-      <div className="scenario-panel">
-        <div className="scenario-panel__top">
-          <div className="scenario-panel__top-left">
-            <div className="scenario-panel__eyebrow">
-              SCENARIO CONFIGURATION
-            </div>
-
-            <h2 className="scenario-panel__title">
-              {name}
-            </h2>
-
-            <div className="scenario-panel__id">
-              {scenarioId}
-            </div>
+      <div className="sp">
+        {/* Top */}
+        <div className="sp__top">
+          <div className="sp__top-left">
+            <div className="sp__eyebrow">SCENARIO CONFIGURATION</div>
+            <h2 className="sp__title">{name}</h2>
+            <div className="sp__id">{scenarioId}</div>
           </div>
-
           {onClose && (
-            <button
-              type="button"
-              className="scenario-panel__close"
-              onClick={onClose}
-              aria-label="Close scenario panel"
-            >
-              ×
-            </button>
+            <button type="button" className="sp__close" onClick={onClose} aria-label="Close">×</button>
           )}
         </div>
 
-        {description && (
-          <p className="scenario-panel__description">
-            {description}
-          </p>
-        )}
+        {/* Description */}
+        {description && <p className="sp__description">{description}</p>}
 
-        <div className="scenario-panel__context">
-          <div className="scenario-panel__context-item">
-            <span className="scenario-panel__label">
-              CURRENT TIME
-            </span>
-
-            <span className="scenario-panel__value scenario-panel__value--mono">
-              {formatDate(currentTime)}
-            </span>
+        {/* Context row */}
+        <div className="sp__context">
+          <div className="sp__ctx-item">
+            <span className="sp__label">CURRENT TIME</span>
+            <span className="sp__value sp__value--mono">{formatDate(currentTime)}</span>
           </div>
-
-          <div className="scenario-panel__context-item">
-            <span className="scenario-panel__label">
-              ACTIVE SHIFT
-            </span>
-
-            <span className="scenario-panel__value">
-              {activeShift ?? "—"}
-            </span>
+          <div className="sp__ctx-item">
+            <span className="sp__label">ACTIVE SHIFT</span>
+            <span className="sp__value">{activeShift ?? "—"}</span>
           </div>
-
-          <div className="scenario-panel__context-item">
-            <span className="scenario-panel__label">
-              EVENTS
-            </span>
-
-            <span className="scenario-panel__value">
-              {eventCount}
-            </span>
+          <div className="sp__ctx-item">
+            <span className="sp__label">EVENTS</span>
+            <span className="sp__value">{eventCount}</span>
           </div>
         </div>
 
-        <div className="scenario-panel__summary">
-          <div className="scenario-panel__summary-item">
-            <span className="scenario-panel__summary-number">
-              {eventSummary.machineEvents}
-            </span>
-
-            <span className="scenario-panel__summary-label">
-              MACHINE EVENTS
-            </span>
+        {/* Summary stats */}
+        <div className="sp__summary">
+          <div className="sp__summary-item">
+            <span className="sp__summary-num">{eventSummary.machineEvents}</span>
+            <span className="sp__summary-label">MACHINE EVENTS</span>
           </div>
-
-          <div className="scenario-panel__summary-divider" />
-
-          <div className="scenario-panel__summary-item">
-            <span className="scenario-panel__summary-number">
-              {eventSummary.operatorEvents}
-            </span>
-
-            <span className="scenario-panel__summary-label">
-              OPERATOR EVENTS
-            </span>
+          <div className="sp__summary-divider" />
+          <div className="sp__summary-item">
+            <span className="sp__summary-num">{eventSummary.operatorEvents}</span>
+            <span className="sp__summary-label">OPERATOR EVENTS</span>
           </div>
-
-          <div className="scenario-panel__summary-divider" />
-
-          <div className="scenario-panel__summary-item">
-            <span className="scenario-panel__summary-number">
-              {eventCount}
-            </span>
-
-            <span className="scenario-panel__summary-label">
-              TOTAL EVENTS
-            </span>
+          <div className="sp__summary-divider" />
+          <div className="sp__summary-item">
+            <span className="sp__summary-num">{eventCount}</span>
+            <span className="sp__summary-label">TOTAL EVENTS</span>
           </div>
         </div>
 
-        <div className="scenario-panel__events-header">
-          <div>
-            <span className="scenario-panel__section-label">
-              EVENT QUEUE
-            </span>
-
-            <span className="scenario-panel__event-count">
-              {eventCount.toString().padStart(2, "0")}
-            </span>
+        {/* Event queue header */}
+        <div className="sp__events-header">
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span className="sp__section-label">EVENT QUEUE</span>
+            <span className="sp__event-count">{String(eventCount).padStart(2, "0")}</span>
           </div>
-
-          <span className="scenario-panel__constraint">
-            HARD CONSTRAINTS
-          </span>
+          <span className="sp__constraint">HARD CONSTRAINTS</span>
         </div>
 
-        <div className="scenario-panel__events">
+        {/* Events */}
+        <div className="sp__events">
           {events.length === 0 ? (
-            <div className="scenario-panel__empty">
-              <span className="scenario-panel__empty-mark">
-                —
-              </span>
-
-              <span>
-                No scenario events configured
-              </span>
+            <div className="sp__empty">
+              <span>—</span>
+              <span>No scenario events configured</span>
             </div>
           ) : (
-            events.map((event, index) => {
-              const expanded =
-                expandedEvent === index;
-
+            events.map((event, i) => {
+              const expanded = expandedEvent === i;
               return (
                 <div
-                  className={`scenario-panel__event ${
-                    expanded
-                      ? "scenario-panel__event--expanded"
-                      : ""
-                  }`}
-                  key={`${event.event_type}-${event.target_id}-${index}`}
+                  key={`${event.event_type}-${event.target_id}-${i}`}
+                  className={`sp__event ${expanded ? "sp__event--expanded" : ""}`}
                 >
                   <button
                     type="button"
-                    className="scenario-panel__event-main"
-                    onClick={() =>
-                      setExpandedEvent(
-                        expanded
-                          ? null
-                          : index
-                      )
-                    }
+                    className="sp__event-main"
+                    onClick={() => setExpandedEvent(expanded ? null : i)}
                   >
-                    <div className="scenario-panel__event-number">
-                      {(index + 1)
-                        .toString()
-                        .padStart(2, "0")}
+                    <div className="sp__event-num">{String(i + 1).padStart(2, "0")}</div>
+                    <div className="sp__event-info">
+                      <span className="sp__event-type">{formatEventType(event.event_type)}</span>
+                      <span className="sp__event-target">{event.target_id}</span>
                     </div>
-
-                    <div className="scenario-panel__event-info">
-                      <span className="scenario-panel__event-type">
-                        {formatEventType(
-                          event.event_type
-                        )}
-                      </span>
-
-                      <span className="scenario-panel__event-target">
-                        {event.target_id}
-                      </span>
+                    <div className="sp__event-time">
+                      <span>{formatDuration(event.duration_hours)}</span>
+                      <span>{formatDate(event.start_time)}</span>
                     </div>
-
-                    <div className="scenario-panel__event-time">
-                      <span>
-                        {formatDuration(
-                          event.duration_hours
-                        )}
-                      </span>
-
-                      <span>
-                        {formatDate(
-                          event.start_time
-                        )}
-                      </span>
-                    </div>
-
-                    <span
-                      className={`scenario-panel__chevron ${
-                        expanded
-                          ? "scenario-panel__chevron--open"
-                          : ""
-                      }`}
-                    >
-                      ›
-                    </span>
+                    <span className={`sp__chevron ${expanded ? "sp__chevron--open" : ""}`}>›</span>
                   </button>
 
                   {expanded && (
-                    <div className="scenario-panel__event-details">
-                      <div className="scenario-panel__detail">
-                        <span className="scenario-panel__label">
-                          EVENT TYPE
-                        </span>
-
-                        <span className="scenario-panel__detail-value">
-                          {formatEventType(
-                            event.event_type
-                          )}
-                        </span>
+                    <div className="sp__event-details">
+                      <div className="sp__detail">
+                        <span className="sp__label">EVENT TYPE</span>
+                        <span className="sp__detail-value">{formatEventType(event.event_type)}</span>
                       </div>
-
-                      <div className="scenario-panel__detail">
-                        <span className="scenario-panel__label">
-                          TARGET
-                        </span>
-
-                        <span className="scenario-panel__detail-value scenario-panel__detail-value--mono">
-                          {event.target_id}
-                        </span>
+                      <div className="sp__detail">
+                        <span className="sp__label">TARGET</span>
+                        <span className="sp__detail-value sp__detail-value--mono">{event.target_id}</span>
                       </div>
-
-                      <div className="scenario-panel__detail">
-                        <span className="scenario-panel__label">
-                          START
-                        </span>
-
-                        <span className="scenario-panel__detail-value">
-                          {formatDate(
-                            event.start_time
-                          )}
-                        </span>
+                      <div className="sp__detail">
+                        <span className="sp__label">START</span>
+                        <span className="sp__detail-value">{formatDate(event.start_time)}</span>
                       </div>
-
-                      <div className="scenario-panel__detail">
-                        <span className="scenario-panel__label">
-                          DURATION
-                        </span>
-
-                        <span className="scenario-panel__detail-value">
-                          {formatDuration(
-                            event.duration_hours
-                          )}
-                        </span>
+                      <div className="sp__detail">
+                        <span className="sp__label">DURATION</span>
+                        <span className="sp__detail-value">{formatDuration(event.duration_hours)}</span>
                       </div>
-
-                      <div className="scenario-panel__detail">
-                        <span className="scenario-panel__label">
-                          IMPACT
-                        </span>
-
-                        <span className="scenario-panel__detail-value">
-                          {event.impact ??
-                            "—"}
-                        </span>
+                      <div className="sp__detail">
+                        <span className="sp__label">IMPACT</span>
+                        <span className="sp__detail-value">{event.impact ?? "—"}</span>
                       </div>
-
                       {event.notes && (
-                        <div className="scenario-panel__notes">
-                          <span className="scenario-panel__label">
-                            NOTES
-                          </span>
-
-                          <p>
-                            {event.notes}
-                          </p>
+                        <div className="sp__detail sp__detail--full">
+                          <span className="sp__label">NOTES</span>
+                          <p className="sp__notes">{event.notes}</p>
                         </div>
                       )}
                     </div>
@@ -395,856 +198,493 @@ export default function ScenarioPanel({
           )}
         </div>
 
-        <div className="scenario-panel__warning">
-          <span className="scenario-panel__warning-icon">
-            !
-          </span>
-
+        {/* Warning */}
+        <div className="sp__warning">
+          <span className="sp__warning-icon">!</span>
           <div>
-            <strong>
-              Replanning will modify the schedule
-            </strong>
-
-            <p>
-              Completed operations remain locked.
-              Unaffected future operations are
-              preserved where possible.
-            </p>
+            <strong>Replanning will modify the schedule</strong>
+            <p>Completed operations remain locked. Unaffected future operations are preserved where possible.</p>
           </div>
         </div>
 
-        <div className="scenario-panel__footer">
-          <div className="scenario-panel__footer-status">
-            <span className="scenario-panel__status-dot" />
-
-            <span>
-              {running
-                ? "OPTIMIZATION RUNNING"
-                : "READY TO OPTIMIZE"}
-            </span>
+        {/* Footer */}
+        <div className="sp__footer">
+          <div className="sp__footer-status">
+            <span className="sp__status-dot" />
+            <span>{running ? "OPTIMIZATION RUNNING" : "READY TO OPTIMIZE"}</span>
           </div>
-
           <button
             type="button"
-            className="scenario-panel__run"
+            className="sp__run"
             onClick={handleRun}
-            disabled={
-              running ||
-              disabled ||
-              !onRun
-            }
+            disabled={running || disabled || !onRun}
           >
             {running ? (
-              <>
-                <span className="scenario-panel__spinner" />
-                OPTIMIZING
-              </>
+              <><span className="sp__spinner" />OPTIMIZING</>
             ) : (
-              <>
-                RUN REPLANNING
-                <span className="scenario-panel__run-arrow">
-                  →
-                </span>
-              </>
+              <>RUN REPLANNING <span className="sp__run-arrow">→</span></>
             )}
           </button>
         </div>
       </div>
 
       <style>{`
-        .scenario-panel {
+        .sp {
           width: 100%;
           max-width: 760px;
-
           overflow: hidden;
-
-          background: #0b0c0d;
-          border: 1px solid #292d30;
-          border-radius: 9px;
-
-          color: #e6e8e7;
-          box-shadow:
-            0 18px 45px rgba(0, 0, 0, 0.18);
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          color: #111827;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.06);
         }
 
-        /* -------------------------
-           TOP
-           ------------------------- */
-
-        .scenario-panel__top {
+        /* Top */
+        .sp__top {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 20px;
-
-          padding: 21px 21px 16px;
-
-          border-bottom: 1px solid #202326;
+          gap: 16px;
+          padding: 20px 20px 16px;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-panel__top-left {
-          min-width: 0;
-        }
+        .sp__top-left { min-width: 0; }
 
-        .scenario-panel__eyebrow {
-          margin-bottom: 8px;
-
-          color: #555c60;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+        .sp__eyebrow {
+          margin-bottom: 6px;
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           font-weight: 700;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.14em;
         }
 
-        .scenario-panel__title {
+        .sp__title {
           margin: 0;
-
-          color: #e7e9e8;
-
-          font-size: 17px;
-          font-weight: 500;
+          color: #111827;
+          font-size: 18px;
+          font-weight: 600;
           letter-spacing: -0.02em;
           line-height: 1.2;
         }
 
-        .scenario-panel__id {
-          margin-top: 6px;
-
-          color: #4f565a;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
+        .sp__id {
+          margin-top: 5px;
+          color: #d1d5db;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 10px;
           letter-spacing: 0.04em;
         }
 
-        .scenario-panel__close {
+        .sp__close {
           display: flex;
           align-items: center;
           justify-content: center;
-
-          width: 27px;
-          height: 27px;
-          flex: 0 0 27px;
-
+          width: 28px;
+          height: 28px;
+          flex: 0 0 28px;
           padding: 0;
-
-          border: 1px solid #292d30;
-          border-radius: 5px;
-
-          background: #0e1011;
-          color: #686f72;
-
-          font-family: Arial, sans-serif;
-          font-size: 17px;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          background: #f9fafb;
+          color: #9ca3af;
+          font-size: 18px;
           font-weight: 300;
           line-height: 1;
-
           cursor: pointer;
-
-          transition:
-            color 140ms ease,
-            border-color 140ms ease,
-            background 140ms ease;
+          transition: background 140ms, color 140ms, border-color 140ms;
         }
 
-        .scenario-panel__close:hover {
-          background: #151718;
-          border-color: #3a3e41;
-          color: #b5b9b8;
-        }
+        .sp__close:hover { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
 
-        /* -------------------------
-           DESCRIPTION
-           ------------------------- */
-
-        .scenario-panel__description {
+        /* Description */
+        .sp__description {
           margin: 0;
-          padding: 15px 21px;
-
-          color: #697073;
-
-          font-size: 10px;
+          padding: 14px 20px;
+          color: #6b7280;
+          font-size: 12px;
           line-height: 1.55;
-
-          border-bottom: 1px solid #202326;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        /* -------------------------
-           CONTEXT
-           ------------------------- */
-
-        .scenario-panel__context {
+        /* Context */
+        .sp__context {
           display: grid;
-          grid-template-columns:
-            minmax(0, 2fr)
-            minmax(100px, 1fr)
-            minmax(80px, 0.7fr);
-
+          grid-template-columns: minmax(0, 2fr) minmax(100px, 1fr) minmax(80px, 0.7fr);
           gap: 1px;
-
-          background: #202326;
-          border-bottom: 1px solid #202326;
+          background: #f3f4f6;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-panel__context-item {
+        .sp__ctx-item {
           min-width: 0;
-          padding: 12px 17px;
-
-          background: #0e1011;
+          padding: 12px 16px;
+          background: #ffffff;
         }
 
-        .scenario-panel__label {
+        .sp__label {
           display: block;
-
-          margin-bottom: 6px;
-
-          color: #4f565a;
-
-          font-size: 7px;
+          margin-bottom: 5px;
+          color: #9ca3af;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.12em;
         }
 
-        .scenario-panel__value {
+        .sp__value {
           display: block;
-
           overflow: hidden;
-
-          color: #aeb3b2;
-
-          font-size: 9px;
+          color: #374151;
+          font-size: 11px;
           font-weight: 500;
-
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .scenario-panel__value--mono {
-          color: #b9bebd;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
+        .sp__value--mono {
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          color: #111827;
         }
 
-        /* -------------------------
-           SUMMARY
-           ------------------------- */
-
-        .scenario-panel__summary {
+        /* Summary */
+        .sp__summary {
           display: flex;
           align-items: stretch;
-
-          min-height: 65px;
-
-          border-bottom: 1px solid #202326;
+          min-height: 64px;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-panel__summary-item {
+        .sp__summary-item {
           display: flex;
           flex-direction: column;
           justify-content: center;
           gap: 4px;
-
           flex: 1;
-
-          padding: 10px 17px;
+          padding: 10px 16px;
         }
 
-        .scenario-panel__summary-number {
-          color: #d6d9d7;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 15px;
-          font-weight: 500;
+        .sp__summary-num {
+          color: #111827;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 18px;
+          font-weight: 600;
           line-height: 1;
         }
 
-        .scenario-panel__summary-label {
-          color: #4f565a;
-
-          font-size: 7px;
+        .sp__summary-label {
+          color: #9ca3af;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.1em;
         }
 
-        .scenario-panel__summary-divider {
+        .sp__summary-divider {
           width: 1px;
-
           margin: 14px 0;
-
-          background: #24282a;
+          background: #e5e7eb;
         }
 
-        /* -------------------------
-           EVENT HEADER
-           ------------------------- */
-
-        .scenario-panel__events-header {
+        /* Event queue header */
+        .sp__events-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 15px;
-
-          padding: 15px 21px 10px;
+          gap: 12px;
+          padding: 14px 20px 10px;
         }
 
-        .scenario-panel__events-header > div {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .scenario-panel__section-label {
-          color: #666d70;
-
-          font-size: 8px;
+        .sp__section-label {
+          color: #6b7280;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.13em;
         }
 
-        .scenario-panel__event-count {
+        .sp__event-count {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-
-          min-width: 20px;
-          height: 16px;
-          padding: 0 5px;
-
-          border: 1px solid #292d30;
-          border-radius: 3px;
-
-          color: #747b7d;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+          min-width: 22px;
+          height: 18px;
+          padding: 0 6px;
+          border: 1px solid #e5e7eb;
+          border-radius: 4px;
+          color: #6b7280;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
+          background: #f9fafb;
         }
 
-        .scenario-panel__constraint {
-          color: #7d8587;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+        .sp__constraint {
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           letter-spacing: 0.08em;
         }
 
-        /* -------------------------
-           EVENTS
-           ------------------------- */
+        /* Events list */
+        .sp__events { padding: 0 20px; }
 
-        .scenario-panel__events {
-          padding: 0 21px;
-        }
+        .sp__event { border-top: 1px solid #f3f4f6; }
+        .sp__event:last-child { border-bottom: 1px solid #f3f4f6; }
 
-        .scenario-panel__event {
-          border-top: 1px solid #1d2022;
-        }
-
-        .scenario-panel__event:last-child {
-          border-bottom: 1px solid #1d2022;
-        }
-
-        .scenario-panel__event-main {
+        .sp__event-main {
           display: grid;
-          grid-template-columns:
-            28px
-            minmax(0, 1fr)
-            minmax(150px, auto)
-            16px;
-
+          grid-template-columns: 28px minmax(0, 1fr) minmax(150px, auto) 16px;
           align-items: center;
           gap: 10px;
-
           width: 100%;
-          min-height: 58px;
-
-          padding: 7px 0;
-
+          min-height: 56px;
+          padding: 6px 0;
           border: 0;
-
           background: transparent;
           color: inherit;
-
           text-align: left;
           cursor: pointer;
+          transition: background 120ms;
         }
 
-        .scenario-panel__event-main:hover
-          .scenario-panel__event-type {
-          color: #c0c4c3;
-        }
+        .sp__event-main:hover { background: #fafafa; }
+        .sp__event-main:hover .sp__event-type { color: #111827; }
 
-        .scenario-panel__event-number {
+        .sp__event-num {
           display: flex;
           align-items: center;
           justify-content: center;
-
           width: 26px;
           height: 26px;
-
-          border: 1px solid #292d30;
-          border-radius: 4px;
-
-          color: #52595d;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
-        }
-
-        .scenario-panel__event-info {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-
-          min-width: 0;
-        }
-
-        .scenario-panel__event-type {
-          overflow: hidden;
-
-          color: #a8adac;
-
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
           font-size: 9px;
-          font-weight: 500;
-
-          text-overflow: ellipsis;
-          white-space: nowrap;
-
-          transition: color 140ms ease;
+          background: #f9fafb;
         }
 
-        .scenario-panel__event-target {
-          color: #5f666a;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
-        }
-
-        .scenario-panel__event-time {
+        .sp__event-info {
           display: flex;
           flex-direction: column;
           gap: 4px;
-
-          text-align: right;
-        }
-
-        .scenario-panel__event-time span:first-child {
-          color: #9a9f9f;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
-        }
-
-        .scenario-panel__event-time span:last-child {
-          color: #50575a;
-
-          font-size: 7px;
-        }
-
-        .scenario-panel__chevron {
-          color: #4c5356;
-
-          font-family: Arial, sans-serif;
-          font-size: 17px;
-          font-weight: 300;
-
-          transform: rotate(0deg);
-
-          transition:
-            transform 140ms ease,
-            color 140ms ease;
-        }
-
-        .scenario-panel__chevron--open {
-          transform: rotate(90deg);
-          color: #9ca2a1;
-        }
-
-        /* -------------------------
-           EVENT DETAILS
-           ------------------------- */
-
-        .scenario-panel__event-details {
-          display: grid;
-          grid-template-columns:
-            repeat(5, minmax(0, 1fr));
-
-          gap: 14px;
-
-          padding: 5px 0 15px 38px;
-        }
-
-        .scenario-panel__detail {
           min-width: 0;
         }
 
-        .scenario-panel__detail-value {
+        .sp__event-type {
+          overflow: hidden;
+          color: #374151;
+          font-size: 12px;
+          font-weight: 500;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          transition: color 140ms;
+        }
+
+        .sp__event-target {
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 10px;
+        }
+
+        .sp__event-time {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          text-align: right;
+        }
+
+        .sp__event-time span:first-child {
+          color: #374151;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 10px;
+          font-weight: 500;
+        }
+
+        .sp__event-time span:last-child {
+          color: #9ca3af;
+          font-size: 9px;
+        }
+
+        .sp__chevron {
+          color: #d1d5db;
+          font-size: 18px;
+          font-weight: 300;
+          transform: rotate(0deg);
+          transition: transform 140ms ease, color 140ms;
+        }
+
+        .sp__chevron--open { transform: rotate(90deg); color: #6b7280; }
+
+        /* Event details (expanded) */
+        .sp__event-details {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 14px;
+          padding: 4px 0 14px 38px;
+        }
+
+        .sp__detail { min-width: 0; }
+
+        .sp__detail--full { grid-column: 1 / -1; }
+
+        .sp__detail-value {
           display: block;
-
-          color: #969c9d;
-
-          font-size: 8px;
+          color: #374151;
+          font-size: 11px;
           line-height: 1.35;
-
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .scenario-panel__detail-value--mono {
-          color: #aeb3b2;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
+        .sp__detail-value--mono {
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          color: #111827;
         }
 
-        .scenario-panel__notes {
-          grid-column: 1 / -1;
-
-          padding-top: 2px;
-        }
-
-        .scenario-panel__notes p {
-          margin: 0;
-
-          color: #626a6d;
-
-          font-size: 8px;
+        .sp__notes {
+          margin: 4px 0 0;
+          color: #6b7280;
+          font-size: 11px;
           line-height: 1.5;
         }
 
-        /* -------------------------
-           EMPTY
-           ------------------------- */
-
-        .scenario-panel__empty {
+        /* Empty */
+        .sp__empty {
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-
-          min-height: 80px;
-
-          border-top: 1px solid #1d2022;
-          border-bottom: 1px solid #1d2022;
-
-          color: #50575a;
-
-          font-size: 9px;
+          min-height: 72px;
+          border-top: 1px solid #f3f4f6;
+          border-bottom: 1px solid #f3f4f6;
+          color: #9ca3af;
+          font-size: 12px;
         }
 
-        .scenario-panel__empty-mark {
-          color: #707679;
-        }
-
-        /* -------------------------
-           WARNING
-           ------------------------- */
-
-        .scenario-panel__warning {
+        /* Warning */
+        .sp__warning {
           display: flex;
           align-items: flex-start;
           gap: 10px;
-
-          margin: 15px 21px 0;
-          padding: 11px 12px;
-
-          background: #111211;
-          border: 1px solid #2a2b28;
-          border-radius: 5px;
+          margin: 14px 20px 0;
+          padding: 12px 14px;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 8px;
         }
 
-        .scenario-panel__warning-icon {
+        .sp__warning-icon {
           display: flex;
           align-items: center;
           justify-content: center;
-
-          width: 17px;
-          height: 17px;
-          flex: 0 0 17px;
-
-          border: 1px solid #5b5b50;
+          width: 18px;
+          height: 18px;
+          flex: 0 0 18px;
+          border: 1px solid #f59e0b;
           border-radius: 50%;
-
-          color: #aaa895;
-
-          font-family:
-            Georgia,
-            serif;
-
-          font-size: 10px;
+          color: #d97706;
+          font-size: 11px;
+          font-weight: 700;
         }
 
-        .scenario-panel__warning strong {
+        .sp__warning strong {
           display: block;
-
-          margin-bottom: 4px;
-
-          color: #9b9b8e;
-
-          font-size: 8px;
+          margin-bottom: 3px;
+          color: #92400e;
+          font-size: 11px;
           font-weight: 600;
         }
 
-        .scenario-panel__warning p {
+        .sp__warning p {
           margin: 0;
-
-          color: #5f635f;
-
-          font-size: 8px;
+          color: #b45309;
+          font-size: 11px;
           line-height: 1.45;
         }
 
-        /* -------------------------
-           FOOTER
-           ------------------------- */
-
-        .scenario-panel__footer {
+        /* Footer */
+        .sp__footer {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 18px;
-
-          padding: 17px 21px 19px;
+          gap: 16px;
+          padding: 16px 20px 18px;
         }
 
-        .scenario-panel__footer-status {
+        .sp__footer-status {
           display: flex;
           align-items: center;
           gap: 8px;
-
-          color: #596064;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           font-weight: 600;
           letter-spacing: 0.07em;
         }
 
-        .scenario-panel__status-dot {
-          width: 5px;
-          height: 5px;
-
+        .sp__status-dot {
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
-          background: #87998b;
-
-          box-shadow:
-            0 0 0 3px #172019;
+          background: #22c55e;
+          box-shadow: 0 0 0 3px rgba(34,197,94,0.15);
         }
 
-        .scenario-panel__run {
+        .sp__run {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 10px;
-
           min-width: 155px;
-          height: 34px;
-
-          padding: 0 14px;
-
-          border: 1px solid #d4d5d0;
-          border-radius: 5px;
-
-          background: #d4d5d0;
-          color: #111314;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
+          height: 36px;
+          padding: 0 16px;
+          border: 1px solid #111827;
+          border-radius: 8px;
+          background: #111827;
+          color: #ffffff;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.08em;
-
+          letter-spacing: 0.07em;
           cursor: pointer;
-
-          transition:
-            background 140ms ease,
-            border-color 140ms ease,
-            transform 100ms ease;
+          transition: background 140ms, border-color 140ms, transform 100ms;
         }
 
-        .scenario-panel__run:hover:not(:disabled) {
-          background: #e9e9e4;
-          border-color: #e9e9e4;
-        }
+        .sp__run:hover:not(:disabled) { background: #1f2937; border-color: #1f2937; }
+        .sp__run:active:not(:disabled) { transform: translateY(1px); }
+        .sp__run:disabled { cursor: default; opacity: 0.45; }
 
-        .scenario-panel__run:active:not(:disabled) {
-          transform: translateY(1px);
-        }
+        .sp__run-arrow { font-size: 14px; font-weight: 300; }
 
-        .scenario-panel__run:disabled {
-          cursor: default;
-          opacity: 0.45;
-        }
-
-        .scenario-panel__run-arrow {
-          font-family: Arial, sans-serif;
-          font-size: 14px;
-          font-weight: 300;
-        }
-
-        .scenario-panel__spinner {
+        .sp__spinner {
           width: 10px;
           height: 10px;
-
-          border: 1px solid #676a68;
-          border-top-color: #111314;
-
+          border: 1.5px solid rgba(255,255,255,0.3);
+          border-top-color: #ffffff;
           border-radius: 50%;
-
-          animation:
-            scenario-panel-spin
-            650ms linear infinite;
+          animation: sp-spin 650ms linear infinite;
         }
 
-        @keyframes scenario-panel-spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
+        @keyframes sp-spin { to { transform: rotate(360deg); } }
 
-        /* -------------------------
-           RESPONSIVE
-           ------------------------- */
-
+        /* Responsive */
         @media (max-width: 700px) {
-          .scenario-panel__context {
-            grid-template-columns:
-              1fr 1fr;
-          }
-
-          .scenario-panel__event-main {
-            grid-template-columns:
-              28px
-              minmax(0, 1fr)
-              16px;
-          }
-
-          .scenario-panel__event-time {
-            display: none;
-          }
-
-          .scenario-panel__event-details {
-            grid-template-columns:
-              repeat(2, minmax(0, 1fr));
-
-            padding-left: 38px;
-          }
+          .sp__context { grid-template-columns: 1fr 1fr; }
+          .sp__event-main { grid-template-columns: 28px minmax(0, 1fr) 16px; }
+          .sp__event-time { display: none; }
+          .sp__event-details { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-left: 38px; }
         }
 
         @media (max-width: 500px) {
-          .scenario-panel__top {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-          .scenario-panel__description {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-          .scenario-panel__context {
-            grid-template-columns: 1fr;
-          }
-
-          .scenario-panel__summary-item {
-            padding-left: 11px;
-            padding-right: 11px;
-          }
-
-          .scenario-panel__summary-number {
-            font-size: 13px;
-          }
-
-          .scenario-panel__summary-label {
-            font-size: 6px;
-          }
-
-          .scenario-panel__events-header {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-          .scenario-panel__events {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-          .scenario-panel__event-details {
-            padding-left: 38px;
-          }
-
-          .scenario-panel__warning {
-            margin-left: 16px;
-            margin-right: 16px;
-          }
-
-          .scenario-panel__footer {
-            align-items: stretch;
-            flex-direction: column;
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-          .scenario-panel__run {
-            width: 100%;
-          }
+          .sp__top { padding: 16px; }
+          .sp__description { padding: 12px 16px; }
+          .sp__context { grid-template-columns: 1fr; }
+          .sp__events-header { padding-left: 16px; padding-right: 16px; }
+          .sp__events { padding: 0 16px; }
+          .sp__warning { margin-left: 16px; margin-right: 16px; }
+          .sp__footer { align-items: stretch; flex-direction: column; padding: 14px 16px 16px; }
+          .sp__run { width: 100%; }
         }
       `}</style>
     </>

@@ -6,13 +6,11 @@ export interface ScenarioCostBreakdown {
     overtime_cost: number;
     changeover_cost: number;
   };
-
   replanned?: {
     late_penalty: number;
     overtime_cost: number;
     changeover_cost: number;
   };
-
   delta?: {
     late_penalty: number;
     overtime_cost: number;
@@ -20,7 +18,6 @@ export interface ScenarioCostBreakdown {
     stability_penalty: number;
     incremental_cost: number;
   };
-
   impact?: {
     affected_operations: number;
     moved_operations: number;
@@ -33,9 +30,7 @@ export interface ScenarioResultProps {
   status?: string;
   operationsCount: number;
   cost: number;
-
   costBreakdown?: ScenarioCostBreakdown;
-
   diff?: {
     affected_operations?: number;
     moved_operations?: number;
@@ -43,7 +38,6 @@ export interface ScenarioResultProps {
     max_completion_delay_hours?: number;
     [key: string]: unknown;
   };
-
   onBack?: () => void;
   onViewSchedule?: () => void;
   onRunAgain?: () => void;
@@ -57,9 +51,7 @@ function formatCurrency(value = 0) {
 }
 
 function formatNumber(value = 0) {
-  return value.toLocaleString("en-IN", {
-    maximumFractionDigits: 2,
-  });
+  return value.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
 function formatHours(value = 0) {
@@ -67,14 +59,8 @@ function formatHours(value = 0) {
 }
 
 function getDeltaClass(value = 0) {
-  if (value > 0) {
-    return "scenario-result__delta--negative";
-  }
-
-  if (value < 0) {
-    return "scenario-result__delta--positive";
-  }
-
+  if (value > 0) return "sr__delta--neg";
+  if (value < 0) return "sr__delta--pos";
   return "";
 }
 
@@ -82,6 +68,42 @@ function getDeltaPrefix(value = 0) {
   if (value > 0) return "+";
   if (value < 0) return "−";
   return "";
+}
+
+interface CostRowProps {
+  label: string;
+  baseline?: number;
+  replanned?: number;
+  delta?: number;
+}
+
+function CostRow({ label, baseline = 0, replanned = 0, delta = 0 }: CostRowProps) {
+  return (
+    <div className="sr__cost-row">
+      <div className="sr__cost-label">{label}</div>
+      <div className="sr__cost-value">{formatCurrency(baseline)}</div>
+      <div className="sr__cost-value">{formatCurrency(replanned)}</div>
+      <div className={`sr__cost-value sr__cost-delta ${getDeltaClass(delta)}`}>
+        {getDeltaPrefix(delta)}{formatCurrency(Math.abs(delta))}
+      </div>
+    </div>
+  );
+}
+
+interface ImpactCardProps {
+  label: string;
+  value: string;
+  detail: string;
+}
+
+function ImpactCard({ label, value, detail }: ImpactCardProps) {
+  return (
+    <div className="sr__impact-card">
+      <span className="sr__impact-label">{label}</span>
+      <strong className="sr__impact-value">{value}</strong>
+      <span className="sr__impact-detail">{detail}</span>
+    </div>
+  );
 }
 
 export default function ScenarioResult({
@@ -95,156 +117,85 @@ export default function ScenarioResult({
   onRunAgain,
 }: ScenarioResultProps) {
   const baselineCost = useMemo(() => {
-    if (!costBreakdown?.baseline) {
-      return undefined;
-    }
-
-    return (
-      costBreakdown.baseline.late_penalty +
-      costBreakdown.baseline.overtime_cost +
-      costBreakdown.baseline.changeover_cost
-    );
+    if (!costBreakdown?.baseline) return undefined;
+    const b = costBreakdown.baseline;
+    return b.late_penalty + b.overtime_cost + b.changeover_cost;
   }, [costBreakdown]);
 
   const replannedCost = useMemo(() => {
-    if (!costBreakdown?.replanned) {
-      return cost;
-    }
-
-    return (
-      costBreakdown.replanned.late_penalty +
-      costBreakdown.replanned.overtime_cost +
-      costBreakdown.replanned.changeover_cost
-    );
+    if (!costBreakdown?.replanned) return cost;
+    const r = costBreakdown.replanned;
+    return r.late_penalty + r.overtime_cost + r.changeover_cost;
   }, [cost, costBreakdown]);
 
   const delta = costBreakdown?.delta;
-
   const impact = costBreakdown?.impact;
 
-  const affectedOperations =
-    impact?.affected_operations ??
-    diff?.affected_operations ??
-    0;
-
-  const movedOperations =
-    impact?.moved_operations ??
-    diff?.moved_operations ??
-    0;
-
-  const totalDelay =
-    impact?.total_completion_delay_hours ??
-    diff?.total_completion_delay_hours ??
-    0;
-
-  const maxDelay =
-    impact?.max_completion_delay_hours ??
-    diff?.max_completion_delay_hours ??
-    0;
+  const affectedOperations = impact?.affected_operations ?? diff?.affected_operations ?? 0;
+  const movedOperations     = impact?.moved_operations    ?? diff?.moved_operations    ?? 0;
+  const totalDelay          = impact?.total_completion_delay_hours ?? diff?.total_completion_delay_hours ?? 0;
+  const maxDelay            = impact?.max_completion_delay_hours   ?? diff?.max_completion_delay_hours   ?? 0;
 
   return (
     <>
-      <section className="scenario-result">
+      <section className="sr">
+
         {/* Header */}
-        <header className="scenario-result__header">
-          <div className="scenario-result__header-left">
-            <div className="scenario-result__success-mark">
-              <span>✓</span>
-            </div>
-
+        <header className="sr__header">
+          <div className="sr__header-left">
+            <div className="sr__success-mark">✓</div>
             <div>
-              <div className="scenario-result__eyebrow">
-                REPLANNING COMPLETE
-              </div>
-
-              <h2 className="scenario-result__title">
-                Scenario applied successfully
-              </h2>
-
-              <p className="scenario-result__subtitle">
-                The scheduling engine generated a new
-                feasible schedule while preserving
-                operation uniqueness.
+              <div className="sr__eyebrow">REPLANNING COMPLETE</div>
+              <h2 className="sr__title">Scenario applied successfully</h2>
+              <p className="sr__subtitle">
+                The scheduling engine generated a new feasible schedule while preserving operation uniqueness.
               </p>
             </div>
           </div>
-
-          <div className="scenario-result__status">
-            <span className="scenario-result__status-dot" />
+          <div className="sr__status-badge">
+            <span className="sr__status-dot" />
             {status.toUpperCase()}
           </div>
         </header>
 
-        {/* Main cost */}
-        <div className="scenario-result__hero">
-          <div className="scenario-result__hero-main">
-            <span className="scenario-result__hero-label">
-              NEW TOTAL COST
-            </span>
-
-            <strong className="scenario-result__hero-value">
-              {formatCurrency(cost)}
-            </strong>
-
+        {/* Hero cost */}
+        <div className="sr__hero">
+          <div className="sr__hero-main">
+            <span className="sr__hero-label">NEW TOTAL COST</span>
+            <strong className="sr__hero-value">{formatCurrency(cost)}</strong>
             {delta && (
-              <span
-                className={`scenario-result__hero-delta ${getDeltaClass(
-                  delta.incremental_cost
-                )}`}
-              >
-                {getDeltaPrefix(
-                  delta.incremental_cost
-                )}
-                {formatCurrency(
-                  Math.abs(delta.incremental_cost)
-                )}
-                <span>
-                  {" "}
-                  vs baseline
-                </span>
+              <span className={`sr__hero-delta ${getDeltaClass(delta.incremental_cost)}`}>
+                {getDeltaPrefix(delta.incremental_cost)}
+                {formatCurrency(Math.abs(delta.incremental_cost))}
+                <span> vs baseline</span>
               </span>
             )}
           </div>
-
-          <div className="scenario-result__hero-meta">
+          <div className="sr__hero-meta">
             <div>
               <span>FINAL OPERATIONS</span>
-              <strong>
-                {formatNumber(operationsCount)}
-              </strong>
+              <strong>{formatNumber(operationsCount)}</strong>
             </div>
-
             <div>
               <span>MOVED</span>
-              <strong>
-                {formatNumber(movedOperations)}
-              </strong>
+              <strong>{formatNumber(movedOperations)}</strong>
             </div>
-
             <div>
               <span>AFFECTED</span>
-              <strong>
-                {formatNumber(
-                  affectedOperations
-                )}
-              </strong>
+              <strong>{formatNumber(affectedOperations)}</strong>
             </div>
           </div>
         </div>
 
-        {/* Cost comparison */}
-        <section className="scenario-result__section">
-          <div className="scenario-result__section-header">
+        {/* Cost analysis */}
+        <section className="sr__section">
+          <div className="sr__section-header">
             <div>
-              <span className="scenario-result__section-label">
-                COST ANALYSIS
-              </span>
-
+              <span className="sr__section-label">COST ANALYSIS</span>
               <h3>Baseline vs replanned</h3>
             </div>
-
             {baselineCost !== undefined && (
-              <span className="scenario-result__comparison">
+              <span className="sr__comparison">
                 {formatCurrency(baselineCost)}
                 <span> → </span>
                 {formatCurrency(replannedCost)}
@@ -252,191 +203,95 @@ export default function ScenarioResult({
             )}
           </div>
 
-          <div className="scenario-result__cost-grid">
+          <div className="sr__cost-grid">
+            {/* Column headers */}
+            <div className="sr__cost-head">
+              <div>LINE ITEM</div>
+              <div>BASELINE</div>
+              <div>REPLANNED</div>
+              <div>DELTA</div>
+            </div>
             <CostRow
               label="Late penalty"
-              baseline={
-                costBreakdown?.baseline
-                  ?.late_penalty
-              }
-              replanned={
-                costBreakdown?.replanned
-                  ?.late_penalty
-              }
+              baseline={costBreakdown?.baseline?.late_penalty}
+              replanned={costBreakdown?.replanned?.late_penalty}
               delta={delta?.late_penalty}
             />
-
             <CostRow
               label="Overtime"
-              baseline={
-                costBreakdown?.baseline
-                  ?.overtime_cost
-              }
-              replanned={
-                costBreakdown?.replanned
-                  ?.overtime_cost
-              }
+              baseline={costBreakdown?.baseline?.overtime_cost}
+              replanned={costBreakdown?.replanned?.overtime_cost}
               delta={delta?.overtime_cost}
             />
-
             <CostRow
               label="Changeover"
-              baseline={
-                costBreakdown?.baseline
-                  ?.changeover_cost
-              }
-              replanned={
-                costBreakdown?.replanned
-                  ?.changeover_cost
-              }
+              baseline={costBreakdown?.baseline?.changeover_cost}
+              replanned={costBreakdown?.replanned?.changeover_cost}
               delta={delta?.changeover_cost}
             />
-
-            <div className="scenario-result__cost-total">
+            <div className="sr__cost-total">
               <span>Incremental scenario cost</span>
-
-              <strong
-                className={getDeltaClass(
-                  delta?.incremental_cost
-                )}
-              >
-                {getDeltaPrefix(
-                  delta?.incremental_cost
-                )}
-                {formatCurrency(
-                  Math.abs(
-                    delta?.incremental_cost ?? 0
-                  )
-                )}
+              <strong className={getDeltaClass(delta?.incremental_cost)}>
+                {getDeltaPrefix(delta?.incremental_cost)}
+                {formatCurrency(Math.abs(delta?.incremental_cost ?? 0))}
               </strong>
             </div>
           </div>
         </section>
 
-        {/* Operational impact */}
-        <section className="scenario-result__section">
-          <div className="scenario-result__section-header">
+        {/* Schedule impact */}
+        <section className="sr__section">
+          <div className="sr__section-header">
             <div>
-              <span className="scenario-result__section-label">
-                SCHEDULE IMPACT
-              </span>
-
+              <span className="sr__section-label">SCHEDULE IMPACT</span>
               <h3>What changed</h3>
             </div>
           </div>
-
-          <div className="scenario-result__impact-grid">
-            <ImpactCard
-              label="Affected operations"
-              value={formatNumber(
-                affectedOperations
-              )}
-              detail="operations evaluated for replanning"
-            />
-
-            <ImpactCard
-              label="Moved operations"
-              value={formatNumber(
-                movedOperations
-              )}
-              detail="operations changed from baseline"
-            />
-
-            <ImpactCard
-              label="Total completion delay"
-              value={formatHours(totalDelay)}
-              detail="aggregate completion delay"
-            />
-
-            <ImpactCard
-              label="Maximum delay"
-              value={formatHours(maxDelay)}
-              detail="largest individual delay"
-            />
+          <div className="sr__impact-grid">
+            <ImpactCard label="Affected operations"    value={formatNumber(affectedOperations)} detail="operations evaluated for replanning" />
+            <ImpactCard label="Moved operations"       value={formatNumber(movedOperations)}    detail="operations changed from baseline" />
+            <ImpactCard label="Total completion delay" value={formatHours(totalDelay)}          detail="aggregate completion delay" />
+            <ImpactCard label="Maximum delay"          value={formatHours(maxDelay)}            detail="largest individual delay" />
           </div>
         </section>
 
-        {/* Integrity */}
-        <section className="scenario-result__integrity">
-          <div className="scenario-result__integrity-item">
-            <span className="scenario-result__integrity-icon">
-              ✓
-            </span>
-
-            <div>
-              <strong>Schedule integrity</strong>
-              <span>
-                {operationsCount} operations retained
-              </span>
-            </div>
-          </div>
-
-          <div className="scenario-result__integrity-divider" />
-
-          <div className="scenario-result__integrity-item">
-            <span className="scenario-result__integrity-icon">
-              ✓
-            </span>
-
-            <div>
-              <strong>Duplicate check</strong>
-              <span>
-                No duplicate operation keys
-              </span>
-            </div>
-          </div>
-
-          <div className="scenario-result__integrity-divider" />
-
-          <div className="scenario-result__integrity-item">
-            <span className="scenario-result__integrity-icon">
-              ✓
-            </span>
-
-            <div>
-              <strong>Constraints</strong>
-              <span>
-                Scenario constraints enforced
-              </span>
-            </div>
-          </div>
+        {/* Integrity checks */}
+        <section className="sr__integrity">
+          {[
+            { label: "Schedule integrity",  detail: `${operationsCount} operations retained` },
+            { label: "Duplicate check",     detail: "No duplicate operation keys" },
+            { label: "Constraints",         detail: "Scenario constraints enforced" },
+          ].map((item, i, arr) => (
+            <>
+              <div className="sr__integrity-item" key={item.label}>
+                <span className="sr__integrity-icon">✓</span>
+                <div>
+                  <strong>{item.label}</strong>
+                  <span>{item.detail}</span>
+                </div>
+              </div>
+              {i < arr.length - 1 && <div className="sr__integrity-divider" key={`div-${i}`} />}
+            </>
+          ))}
         </section>
 
-        {/* Actions */}
-        <footer className="scenario-result__footer">
-          <div className="scenario-result__footer-note">
-            Replanned schedule is ready for inspection.
-          </div>
-
-          <div className="scenario-result__actions">
+        {/* Footer */}
+        <footer className="sr__footer">
+          <div className="sr__footer-note">Replanned schedule is ready for inspection.</div>
+          <div className="sr__actions">
             {onBack && (
-              <button
-                type="button"
-                className="scenario-result__button scenario-result__button--secondary"
-                onClick={onBack}
-              >
+              <button type="button" className="sr__btn sr__btn--secondary" onClick={onBack}>
                 BACK TO SCENARIOS
               </button>
             )}
-
             {onRunAgain && (
-              <button
-                type="button"
-                className="scenario-result__button scenario-result__button--secondary"
-                onClick={onRunAgain}
-              >
+              <button type="button" className="sr__btn sr__btn--secondary" onClick={onRunAgain}>
                 RUN AGAIN
               </button>
             )}
-
             {onViewSchedule && (
-              <button
-                type="button"
-                className="scenario-result__button scenario-result__button--primary"
-                onClick={onViewSchedule}
-              >
-                VIEW NEW SCHEDULE
-                <span>→</span>
+              <button type="button" className="sr__btn sr__btn--primary" onClick={onViewSchedule}>
+                VIEW NEW SCHEDULE <span>→</span>
               </button>
             )}
           </div>
@@ -444,781 +299,460 @@ export default function ScenarioResult({
       </section>
 
       <style>{`
-        .scenario-result {
+        .sr {
           width: 100%;
           overflow: hidden;
-
-          background: #0b0c0d;
-          border: 1px solid #292d30;
-          border-radius: 9px;
-
-          color: #e7e9e8;
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          color: #111827;
         }
 
-        /* -------------------------
-           HEADER
-           ------------------------- */
-
-        .scenario-result__header {
+        /* Header */
+        .sr__header {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
           gap: 20px;
-
-          padding: 21px;
-
-          border-bottom: 1px solid #202326;
+          padding: 20px;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-result__header-left {
+        .sr__header-left {
           display: flex;
           align-items: flex-start;
           gap: 12px;
-
           min-width: 0;
         }
 
-        .scenario-result__success-mark {
+        .sr__success-mark {
           display: flex;
           align-items: center;
           justify-content: center;
-
-          width: 31px;
-          height: 31px;
-          flex: 0 0 31px;
-
-          border: 1px solid #35463a;
-          border-radius: 5px;
-
-          background: #101512;
-          color: #8da694;
-
-          font-size: 13px;
+          width: 34px;
+          height: 34px;
+          flex: 0 0 34px;
+          border: 1px solid #bbf7d0;
+          border-radius: 8px;
+          background: #f0fdf4;
+          color: #16a34a;
+          font-size: 14px;
         }
 
-        .scenario-result__eyebrow {
-          margin-bottom: 6px;
-
-          color: #819789;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+        .sr__eyebrow {
+          margin-bottom: 5px;
+          color: #16a34a;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.13em;
         }
 
-        .scenario-result__title {
+        .sr__title {
           margin: 0;
-
-          color: #e7e9e8;
-
+          color: #111827;
           font-size: 16px;
-          font-weight: 500;
+          font-weight: 600;
           letter-spacing: -0.015em;
         }
 
-        .scenario-result__subtitle {
-          max-width: 590px;
-
-          margin: 6px 0 0;
-
-          color: #636a6e;
-
-          font-size: 9px;
-          line-height: 1.45;
+        .sr__subtitle {
+          max-width: 520px;
+          margin: 5px 0 0;
+          color: #6b7280;
+          font-size: 12px;
+          line-height: 1.5;
         }
 
-        .scenario-result__status {
+        .sr__status-badge {
           display: inline-flex;
           align-items: center;
-          gap: 7px;
-
+          gap: 6px;
           flex: 0 0 auto;
-
-          padding: 6px 8px;
-
-          border: 1px solid #2b3a31;
-          border-radius: 4px;
-
-          color: #8ca695;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+          padding: 5px 10px;
+          border: 1px solid #bbf7d0;
+          border-radius: 20px;
+          background: #f0fdf4;
+          color: #15803d;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.1em;
         }
 
-        .scenario-result__status-dot {
+        .sr__status-dot {
           width: 5px;
           height: 5px;
-
           border-radius: 50%;
-          background: #8ca695;
+          background: #22c55e;
         }
 
-        /* -------------------------
-           HERO
-           ------------------------- */
-
-        .scenario-result__hero {
+        /* Hero */
+        .sr__hero {
           display: flex;
           align-items: stretch;
-
-          border-bottom: 1px solid #202326;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-result__hero-main {
+        .sr__hero-main {
           display: flex;
           flex-direction: column;
           justify-content: center;
-
-          min-width: 280px;
-
-          padding: 22px 21px;
-
-          border-right: 1px solid #202326;
+          min-width: 260px;
+          padding: 20px;
+          border-right: 1px solid #f3f4f6;
         }
 
-        .scenario-result__hero-label {
-          margin-bottom: 7px;
-
-          color: #555c60;
-
-          font-size: 7px;
+        .sr__hero-label {
+          margin-bottom: 6px;
+          color: #9ca3af;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.13em;
         }
 
-        .scenario-result__hero-value {
-          color: #eceeec;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 25px;
-          font-weight: 500;
+        .sr__hero-value {
+          color: #111827;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 26px;
+          font-weight: 600;
           letter-spacing: -0.04em;
           line-height: 1;
         }
 
-        .scenario-result__hero-delta {
+        .sr__hero-delta {
           margin-top: 8px;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 11px;
         }
 
-        .scenario-result__hero-delta span {
-          color: #535a5e;
-        }
+        .sr__hero-delta span { color: #9ca3af; }
 
-        .scenario-result__hero-meta {
+        .sr__hero-meta {
           display: grid;
-          grid-template-columns:
-            repeat(3, minmax(100px, 1fr));
-
+          grid-template-columns: repeat(3, minmax(100px, 1fr));
           flex: 1;
-
-          background: #0e1011;
+          background: #f9fafb;
         }
 
-        .scenario-result__hero-meta div {
+        .sr__hero-meta div {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          gap: 6px;
-
+          gap: 5px;
           padding: 18px;
-
-          border-right: 1px solid #202326;
+          border-right: 1px solid #f3f4f6;
         }
 
-        .scenario-result__hero-meta div:last-child {
-          border-right: 0;
-        }
+        .sr__hero-meta div:last-child { border-right: 0; }
 
-        .scenario-result__hero-meta span {
-          color: #4f565a;
-
-          font-size: 7px;
+        .sr__hero-meta span {
+          color: #9ca3af;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.12em;
         }
 
-        .scenario-result__hero-meta strong {
-          color: #c4c8c7;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 16px;
-          font-weight: 500;
+        .sr__hero-meta strong {
+          color: #111827;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 18px;
+          font-weight: 600;
         }
 
-        /* -------------------------
-           SECTIONS
-           ------------------------- */
+        /* Delta colors */
+        .sr__delta--neg { color: #dc2626; }
+        .sr__delta--pos { color: #16a34a; }
 
-        .scenario-result__section {
-          padding: 20px 21px;
-
-          border-bottom: 1px solid #202326;
+        /* Sections */
+        .sr__section {
+          padding: 18px 20px;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-result__section-header {
+        .sr__section-header {
           display: flex;
           align-items: flex-end;
           justify-content: space-between;
-          gap: 15px;
-
+          gap: 12px;
           margin-bottom: 14px;
         }
 
-        .scenario-result__section-label {
+        .sr__section-label {
           display: block;
-
-          margin-bottom: 6px;
-
-          color: #555c60;
-
-          font-size: 7px;
+          margin-bottom: 5px;
+          color: #9ca3af;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.14em;
         }
 
-        .scenario-result__section-header h3 {
+        .sr__section-header h3 {
           margin: 0;
-
-          color: #b8bcbb;
-
-          font-size: 11px;
-          font-weight: 500;
-        }
-
-        .scenario-result__comparison {
-          color: #686f72;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
-        }
-
-        /* -------------------------
-           COST
-           ------------------------- */
-
-        .scenario-result__cost-grid {
-          overflow: hidden;
-
-          border: 1px solid #222629;
-          border-radius: 5px;
-        }
-
-        .scenario-result__cost-row {
-          display: grid;
-          grid-template-columns:
-            minmax(150px, 1fr)
-            130px
-            130px
-            130px;
-
-          min-height: 42px;
-
-          border-bottom: 1px solid #1d2022;
-        }
-
-        .scenario-result__cost-row:last-child {
-          border-bottom: 0;
-        }
-
-        .scenario-result__cost-row > div {
-          display: flex;
-          align-items: center;
-
-          padding: 0 13px;
-
-          border-right: 1px solid #1d2022;
-        }
-
-        .scenario-result__cost-row > div:last-child {
-          border-right: 0;
-        }
-
-        .scenario-result__cost-label {
-          color: #7c8385;
-
-          font-size: 9px;
-        }
-
-        .scenario-result__cost-value {
-          justify-content: flex-end;
-
-          color: #9da3a2;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
-        }
-
-        .scenario-result__cost-delta {
-          justify-content: flex-end;
-        }
-
-        .scenario-result__cost-total {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          min-height: 46px;
-
-          padding: 0 13px;
-
-          background: #0e1011;
-        }
-
-        .scenario-result__cost-total span {
-          color: #858b8d;
-
-          font-size: 9px;
-        }
-
-        .scenario-result__cost-total strong {
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 10px;
+          color: #111827;
+          font-size: 13px;
           font-weight: 600;
         }
 
-        /* -------------------------
-           IMPACT
-           ------------------------- */
+        .sr__comparison {
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 11px;
+        }
 
-        .scenario-result__impact-grid {
+        .sr__comparison span { color: #d1d5db; }
+
+        /* Cost grid */
+        .sr__cost-grid {
+          overflow: hidden;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+        }
+
+        .sr__cost-head {
           display: grid;
-          grid-template-columns:
-            repeat(4, minmax(0, 1fr));
+          grid-template-columns: minmax(150px, 1fr) 130px 130px 130px;
+          background: #f9fafb;
+          border-bottom: 1px solid #e5e7eb;
+        }
 
+        .sr__cost-head > div {
+          padding: 8px 14px;
+          font-size: 9px;
+          font-weight: 700;
+          color: #9ca3af;
+          letter-spacing: 0.1em;
+          border-right: 1px solid #e5e7eb;
+        }
+
+        .sr__cost-head > div:last-child { border-right: 0; }
+
+        .sr__cost-row {
+          display: grid;
+          grid-template-columns: minmax(150px, 1fr) 130px 130px 130px;
+          min-height: 42px;
+          border-bottom: 1px solid #f3f4f6;
+        }
+
+        .sr__cost-row:last-of-type { border-bottom: 0; }
+
+        .sr__cost-row > div {
+          display: flex;
+          align-items: center;
+          padding: 0 14px;
+          border-right: 1px solid #f3f4f6;
+        }
+
+        .sr__cost-row > div:last-child { border-right: 0; }
+
+        .sr__cost-label { color: #374151; font-size: 12px; }
+
+        .sr__cost-value {
+          justify-content: flex-end;
+          color: #6b7280;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 11px;
+        }
+
+        .sr__cost-delta { justify-content: flex-end; font-weight: 600; }
+
+        .sr__cost-total {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          min-height: 46px;
+          padding: 0 14px;
+          background: #f9fafb;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .sr__cost-total span { color: #6b7280; font-size: 12px; }
+
+        .sr__cost-total strong {
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 13px;
+          font-weight: 700;
+          color: #111827;
+        }
+
+        /* Impact grid */
+        .sr__impact-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 1px;
-
-          background: #202326;
-          border: 1px solid #202326;
-          border-radius: 5px;
+          background: #e5e7eb;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
           overflow: hidden;
         }
 
-        .scenario-result__impact-card {
+        .sr__impact-card {
           min-width: 0;
-
-          padding: 14px;
-
-          background: #0e1011;
+          padding: 14px 16px;
+          background: #ffffff;
         }
 
-        .scenario-result__impact-label {
+        .sr__impact-label {
           display: block;
-
-          margin-bottom: 8px;
-
-          color: #555c60;
-
-          font-size: 7px;
+          margin-bottom: 7px;
+          color: #9ca3af;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.1em;
         }
 
-        .scenario-result__impact-value {
+        .sr__impact-value {
           display: block;
-
-          color: #d0d4d2;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 16px;
-          font-weight: 500;
-        }
-
-        .scenario-result__impact-detail {
-          display: block;
-
-          margin-top: 6px;
-
-          color: #4f565a;
-
-          font-size: 7px;
-          line-height: 1.35;
-        }
-
-        /* -------------------------
-           INTEGRITY
-           ------------------------- */
-
-        .scenario-result__integrity {
-          display: flex;
-          align-items: center;
-
-          min-height: 62px;
-
-          border-bottom: 1px solid #202326;
-        }
-
-        .scenario-result__integrity-item {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-
-          flex: 1;
-
-          padding: 13px 18px;
-        }
-
-        .scenario-result__integrity-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          width: 18px;
-          height: 18px;
-          flex: 0 0 18px;
-
-          border: 1px solid #314136;
-          border-radius: 50%;
-
-          background: #101512;
-          color: #8da694;
-
-          font-size: 9px;
-        }
-
-        .scenario-result__integrity-item div {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-
-          min-width: 0;
-        }
-
-        .scenario-result__integrity-item strong {
-          color: #929896;
-
-          font-size: 8px;
+          color: #111827;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 18px;
           font-weight: 600;
         }
 
-        .scenario-result__integrity-item span:last-child {
-          color: #50575a;
-
-          font-size: 7px;
+        .sr__impact-detail {
+          display: block;
+          margin-top: 5px;
+          color: #9ca3af;
+          font-size: 10px;
+          line-height: 1.35;
         }
 
-        .scenario-result__integrity-divider {
+        /* Integrity */
+        .sr__integrity {
+          display: flex;
+          align-items: center;
+          min-height: 60px;
+          border-bottom: 1px solid #f3f4f6;
+        }
+
+        .sr__integrity-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex: 1;
+          padding: 12px 18px;
+        }
+
+        .sr__integrity-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          flex: 0 0 20px;
+          border: 1px solid #bbf7d0;
+          border-radius: 50%;
+          background: #f0fdf4;
+          color: #16a34a;
+          font-size: 10px;
+        }
+
+        .sr__integrity-item div {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .sr__integrity-item strong {
+          color: #374151;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .sr__integrity-item span:last-child {
+          color: #9ca3af;
+          font-size: 10px;
+        }
+
+        .sr__integrity-divider {
           width: 1px;
           height: 28px;
-
-          background: #24282a;
+          background: #e5e7eb;
         }
 
-        /* -------------------------
-           FOOTER
-           ------------------------- */
-
-        .scenario-result__footer {
+        /* Footer */
+        .sr__footer {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 20px;
-
-          padding: 16px 21px;
+          gap: 16px;
+          padding: 14px 20px;
         }
 
-        .scenario-result__footer-note {
-          color: #4f565a;
+        .sr__footer-note { color: #9ca3af; font-size: 11px; }
 
-          font-size: 8px;
-        }
+        .sr__actions { display: flex; align-items: center; gap: 7px; }
 
-        .scenario-result__actions {
-          display: flex;
-          align-items: center;
-          gap: 7px;
-        }
-
-        .scenario-result__button {
+        .sr__btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-
-          height: 31px;
-
-          padding: 0 11px;
-
-          border-radius: 4px;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+          height: 32px;
+          padding: 0 12px;
+          border-radius: 6px;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.07em;
-
           cursor: pointer;
-
-          transition:
-            background 140ms ease,
-            border-color 140ms ease,
-            color 140ms ease;
+          transition: background 140ms, border-color 140ms, color 140ms;
         }
 
-        .scenario-result__button--secondary {
-          background: #0e1011;
-          border: 1px solid #292d30;
-          color: #777e81;
+        .sr__btn--secondary {
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          color: #6b7280;
         }
 
-        .scenario-result__button--secondary:hover {
-          background: #141618;
-          border-color: #383d40;
-          color: #b3b8b7;
+        .sr__btn--secondary:hover {
+          background: #f9fafb;
+          border-color: #d1d5db;
+          color: #374151;
         }
 
-        .scenario-result__button--primary {
-          background: #d5d6d1;
-          border: 1px solid #d5d6d1;
-          color: #111314;
+        .sr__btn--primary {
+          background: #111827;
+          border: 1px solid #111827;
+          color: #ffffff;
         }
 
-        .scenario-result__button--primary:hover {
-          background: #ecece7;
-          border-color: #ecece7;
-        }
+        .sr__btn--primary:hover { background: #1f2937; border-color: #1f2937; }
 
-        .scenario-result__delta--negative {
-          color: #c9867f;
-        }
-
-        .scenario-result__delta--positive {
-          color: #8fac99;
-        }
-
-        /* -------------------------
-           RESPONSIVE
-           ------------------------- */
-
+        /* Responsive */
         @media (max-width: 850px) {
-          .scenario-result__hero {
-            flex-direction: column;
-          }
-
-          .scenario-result__hero-main {
-            border-right: 0;
-            border-bottom: 1px solid #202326;
-          }
-
-          .scenario-result__impact-grid {
-            grid-template-columns:
-              repeat(2, minmax(0, 1fr));
-          }
+          .sr__hero { flex-direction: column; }
+          .sr__hero-main { border-right: 0; border-bottom: 1px solid #f3f4f6; }
+          .sr__impact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (max-width: 700px) {
-          .scenario-result__cost-row {
-            grid-template-columns:
-              minmax(120px, 1fr)
-              90px
-              90px
-              90px;
-          }
-
-          .scenario-result__integrity {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .scenario-result__integrity-divider {
-            width: auto;
-            height: 1px;
-            margin: 0 18px;
-          }
+          .sr__cost-head,
+          .sr__cost-row { grid-template-columns: minmax(120px, 1fr) 90px 90px 90px; }
+          .sr__integrity { flex-direction: column; align-items: stretch; }
+          .sr__integrity-divider { width: auto; height: 1px; margin: 0 18px; }
         }
 
         @media (max-width: 560px) {
-          .scenario-result__header {
-            flex-direction: column;
-          }
-
-          .scenario-result__status {
-            align-self: flex-start;
-          }
-
-          .scenario-result__hero-meta {
-            grid-template-columns:
-              repeat(3, minmax(0, 1fr));
-          }
-
-          .scenario-result__hero-meta div {
-            padding: 13px;
-          }
-
-          .scenario-result__section {
-            padding: 17px 15px;
-          }
-
-          .scenario-result__cost-grid {
-            overflow-x: auto;
-          }
-
-          .scenario-result__cost-row {
-            min-width: 500px;
-          }
-
-          .scenario-result__footer {
-            align-items: stretch;
-            flex-direction: column;
-          }
-
-          .scenario-result__actions {
-            flex-wrap: wrap;
-          }
-
-          .scenario-result__button {
-            flex: 1;
-          }
+          .sr__header { flex-direction: column; }
+          .sr__status-badge { align-self: flex-start; }
+          .sr__section { padding: 16px; }
+          .sr__cost-grid { overflow-x: auto; }
+          .sr__cost-head,
+          .sr__cost-row { min-width: 480px; }
+          .sr__footer { align-items: stretch; flex-direction: column; }
+          .sr__actions { flex-wrap: wrap; }
+          .sr__btn { flex: 1; }
         }
 
         @media (max-width: 400px) {
-          .scenario-result__hero-meta {
-            grid-template-columns: 1fr;
-          }
-
-          .scenario-result__hero-meta div {
-            border-right: 0;
-            border-bottom: 1px solid #202326;
-          }
-
-          .scenario-result__hero-meta div:last-child {
-            border-bottom: 0;
-          }
-
-          .scenario-result__impact-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .scenario-result__actions {
-            flex-direction: column;
-          }
-
-          .scenario-result__button {
-            width: 100%;
-          }
+          .sr__hero-meta { grid-template-columns: 1fr; }
+          .sr__impact-grid { grid-template-columns: 1fr; }
+          .sr__actions { flex-direction: column; }
+          .sr__btn { width: 100%; }
         }
       `}</style>
     </>
-  );
-}
-
-interface CostRowProps {
-  label: string;
-  baseline?: number;
-  replanned?: number;
-  delta?: number;
-}
-
-function CostRow({
-  label,
-  baseline = 0,
-  replanned = 0,
-  delta = 0,
-}: CostRowProps) {
-  return (
-    <div className="scenario-result__cost-row">
-      <div className="scenario-result__cost-label">
-        {label}
-      </div>
-
-      <div className="scenario-result__cost-value">
-        {formatCurrency(baseline)}
-      </div>
-
-      <div className="scenario-result__cost-value">
-        {formatCurrency(replanned)}
-      </div>
-
-      <div
-        className={`scenario-result__cost-value scenario-result__cost-delta ${getDeltaClass(
-          delta
-        )}`}
-      >
-        {getDeltaPrefix(delta)}
-        {formatCurrency(Math.abs(delta))}
-      </div>
-    </div>
-  );
-}
-
-interface ImpactCardProps {
-  label: string;
-  value: string;
-  detail: string;
-}
-
-function ImpactCard({
-  label,
-  value,
-  detail,
-}: ImpactCardProps) {
-  return (
-    <div className="scenario-result__impact-card">
-      <span className="scenario-result__impact-label">
-        {label}
-      </span>
-
-      <strong className="scenario-result__impact-value">
-        {value}
-      </strong>
-
-      <span className="scenario-result__impact-detail">
-        {detail}
-      </span>
-    </div>
   );
 }

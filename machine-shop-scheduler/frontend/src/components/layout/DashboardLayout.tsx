@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { NavLink } from "react-router-dom";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -9,23 +10,30 @@ interface DashboardLayoutProps {
 
 interface NavItemProps {
   label: string;
-  active?: boolean;
+  path: string;
 }
 
-function NavItem({
-  label,
-  active = false,
-}: NavItemProps) {
+function NavItem({ label, path }: NavItemProps) {
   return (
-    <button
-      type="button"
-      className={`dashboard-nav-item ${
-        active ? "dashboard-nav-item--active" : ""
-      }`}
+    <NavLink
+      to={path}
+      className={({ isActive }) =>
+        `dashboard-nav-item ${
+          isActive ? "dashboard-nav-item--active" : ""
+        }`
+      }
     >
-      <span className="dashboard-nav-indicator" />
-      <span>{label}</span>
-    </button>
+      {({ isActive }) => (
+        <>
+          <span className="dashboard-nav-indicator" />
+          <span>{label}</span>
+
+          {isActive && (
+            <span className="dashboard-nav-active-bar" />
+          )}
+        </>
+      )}
+    </NavLink>
   );
 }
 
@@ -38,6 +46,7 @@ export default function DashboardLayout({
   return (
     <>
       <div className="dashboard-layout">
+        {/* SIDEBAR */}
         <aside className="dashboard-sidebar">
           <div className="dashboard-brand">
             <div className="dashboard-brand-mark">
@@ -61,14 +70,23 @@ export default function DashboardLayout({
           >
             <NavItem
               label="Overview"
-              active
+              path="/dashboard"
             />
 
-            <NavItem label="Schedule" />
+            <NavItem
+              label="Schedule"
+              path="/schedule"
+            />
 
-            <NavItem label="Scenarios" />
+            <NavItem
+              label="Scenarios"
+              path="/scenarios"
+            />
 
-            <NavItem label="Machines" />
+            <NavItem
+              label="Machines"
+              path="/machines"
+            />
           </nav>
 
           <div className="dashboard-sidebar-footer">
@@ -92,14 +110,17 @@ export default function DashboardLayout({
           </div>
         </aside>
 
+        {/* MAIN */}
         <div className="dashboard-main">
           <header className="dashboard-header">
             <div className="dashboard-heading">
               <div className="dashboard-breadcrumb">
                 <span>CONTROL ROOM</span>
+
                 <span className="dashboard-breadcrumb-separator">
                   /
                 </span>
+
                 <span>OPERATIONS</span>
               </div>
 
@@ -130,13 +151,29 @@ export default function DashboardLayout({
           box-sizing: border-box;
         }
 
+        html,
+        body,
+        #root {
+          margin: 0;
+          min-height: 100%;
+          width: 100%;
+        }
+
+        body {
+          background: #ffffff;
+        }
+
         .dashboard-layout {
           display: flex;
           min-height: 100vh;
           width: 100%;
-          background: #08090a;
-          color: #e7e9e8;
+          background: #ffffff;
+          color: #111827;
         }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
 
         .dashboard-sidebar {
           position: fixed;
@@ -148,8 +185,8 @@ export default function DashboardLayout({
 
           width: 224px;
 
-          background: #0a0b0c;
-          border-right: 1px solid #202326;
+          background: #ffffff;
+          border-right: 1px solid #e5e7eb;
         }
 
         .dashboard-brand {
@@ -160,7 +197,7 @@ export default function DashboardLayout({
           height: 72px;
           padding: 0 20px;
 
-          border-bottom: 1px solid #202326;
+          border-bottom: 1px solid #e5e7eb;
         }
 
         .dashboard-brand-mark {
@@ -168,13 +205,14 @@ export default function DashboardLayout({
           align-items: center;
           justify-content: center;
 
-          width: 30px;
-          height: 30px;
+          width: 32px;
+          height: 32px;
 
-          border: 1px solid #3b3f41;
-          border-radius: 5px;
+          border: 1px solid #d1d5db;
+          border-radius: 7px;
 
-          color: #d5d8d7;
+          background: #111827;
+          color: #ffffff;
 
           font-family:
             "SFMono-Regular",
@@ -194,85 +232,108 @@ export default function DashboardLayout({
         }
 
         .dashboard-brand-name {
-          color: #dedfdd;
-          font-size: 9px;
+          color: #111827;
+          font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.14em;
         }
 
         .dashboard-brand-subtitle {
-          color: #555c60;
+          color: #94a3b8;
           font-size: 8px;
           font-weight: 600;
           letter-spacing: 0.16em;
         }
 
+        /* =========================
+           NAVIGATION
+        ========================= */
+
         .dashboard-nav {
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 4px;
+
           padding: 18px 10px;
         }
 
         .dashboard-nav-item {
+          position: relative;
+
           display: flex;
           align-items: center;
           gap: 11px;
 
           width: 100%;
-          height: 38px;
+          height: 40px;
           padding: 0 12px;
 
-          border: 0;
-          border-radius: 5px;
+          border-radius: 6px;
 
           background: transparent;
-          color: #62696d;
+          color: #64748b;
 
           font-family: inherit;
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 500;
           text-align: left;
+          text-decoration: none;
 
           cursor: pointer;
 
           transition:
             color 140ms ease,
-            background 140ms ease;
+            background 140ms ease,
+            border-color 140ms ease;
         }
 
         .dashboard-nav-item:hover {
-          background: #101214;
-          color: #a8adac;
+          background: #f8fafc;
+          color: #334155;
         }
 
         .dashboard-nav-item--active {
-          background: #111416;
-          color: #e1e3e1;
+          background: #eef8ff;
+          color: #0369a1;
+          font-weight: 600;
         }
 
         .dashboard-nav-indicator {
-          width: 3px;
-          height: 3px;
-          flex: 0 0 3px;
+          width: 5px;
+          height: 5px;
+          flex: 0 0 5px;
 
           border-radius: 50%;
-          background: #454b4e;
+          background: #cbd5e1;
 
           transition:
-            width 140ms ease,
-            height 140ms ease,
-            background 140ms ease;
+            background 140ms ease,
+            transform 140ms ease;
         }
 
         .dashboard-nav-item--active
           .dashboard-nav-indicator {
-          width: 5px;
-          height: 5px;
-          flex-basis: 5px;
-
-          background: #b8bdba;
+          background: #0ea5e9;
+          transform: scale(1.15);
         }
+
+        .dashboard-nav-active-bar {
+          position: absolute;
+
+          right: 0;
+          top: 9px;
+
+          width: 3px;
+          height: 22px;
+
+          border-radius: 999px 0 0 999px;
+
+          background: #0ea5e9;
+        }
+
+        /* =========================
+           SIDEBAR FOOTER
+        ========================= */
 
         .dashboard-sidebar-footer {
           display: flex;
@@ -282,7 +343,7 @@ export default function DashboardLayout({
           margin-top: auto;
           padding: 16px 15px;
 
-          border-top: 1px solid #202326;
+          border-top: 1px solid #e5e7eb;
         }
 
         .dashboard-engine-status {
@@ -292,15 +353,15 @@ export default function DashboardLayout({
         }
 
         .dashboard-status-dot {
-          width: 6px;
-          height: 6px;
-          flex: 0 0 6px;
+          width: 7px;
+          height: 7px;
+          flex: 0 0 7px;
 
           border-radius: 50%;
-          background: #87a890;
+          background: #22c55e;
 
           box-shadow:
-            0 0 0 3px #17221a;
+            0 0 0 3px #ecfdf5;
         }
 
         .dashboard-engine-status > div {
@@ -310,14 +371,14 @@ export default function DashboardLayout({
         }
 
         .dashboard-engine-label {
-          color: #535a5e;
+          color: #94a3b8;
           font-size: 7px;
           font-weight: 700;
           letter-spacing: 0.14em;
         }
 
         .dashboard-engine-value {
-          color: #91a998;
+          color: #16a34a;
 
           font-family:
             "SFMono-Regular",
@@ -330,7 +391,7 @@ export default function DashboardLayout({
         }
 
         .dashboard-version {
-          color: #3f4548;
+          color: #cbd5e1;
 
           font-family:
             "SFMono-Regular",
@@ -341,6 +402,8 @@ export default function DashboardLayout({
           font-size: 8px;
         }
 
+      
+
         .dashboard-main {
           display: flex;
           flex-direction: column;
@@ -349,7 +412,13 @@ export default function DashboardLayout({
           min-height: 100vh;
 
           margin-left: 224px;
+
+          background: #ffffff;
         }
+
+        /* =========================
+           HEADER
+        ========================= */
 
         .dashboard-header {
           display: flex;
@@ -360,8 +429,8 @@ export default function DashboardLayout({
           min-height: 126px;
           padding: 28px 34px 25px;
 
-          background: #0a0b0c;
-          border-bottom: 1px solid #202326;
+          background: #ffffff;
+          border-bottom: 1px solid #e5e7eb;
         }
 
         .dashboard-heading {
@@ -375,7 +444,7 @@ export default function DashboardLayout({
 
           margin-bottom: 11px;
 
-          color: #4f565a;
+          color: #94a3b8;
 
           font-family:
             "SFMono-Regular",
@@ -383,22 +452,22 @@ export default function DashboardLayout({
             "Roboto Mono",
             monospace;
 
-          font-size: 7px;
+          font-size: 8px;
           font-weight: 600;
           letter-spacing: 0.14em;
         }
 
         .dashboard-breadcrumb-separator {
-          color: #303538;
+          color: #cbd5e1;
         }
 
         .dashboard-title {
           margin: 0;
 
-          color: #eceeec;
+          color: #111827;
 
-          font-size: 22px;
-          font-weight: 500;
+          font-size: 24px;
+          font-weight: 600;
           letter-spacing: -0.025em;
           line-height: 1.1;
         }
@@ -406,9 +475,9 @@ export default function DashboardLayout({
         .dashboard-subtitle {
           margin: 7px 0 0;
 
-          color: #5d6468;
+          color: #94a3b8;
 
-          font-size: 10px;
+          font-size: 11px;
           line-height: 1.4;
         }
 
@@ -419,6 +488,10 @@ export default function DashboardLayout({
           flex: 0 0 auto;
         }
 
+        /* =========================
+           CONTENT
+        ========================= */
+
         .dashboard-content {
           flex: 1;
           width: 100%;
@@ -426,7 +499,13 @@ export default function DashboardLayout({
 
           margin: 0 auto;
           padding: 26px 34px 40px;
+
+          background: #ffffff;
         }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
 
         @media (max-width: 900px) {
           .dashboard-sidebar {
@@ -456,7 +535,11 @@ export default function DashboardLayout({
             padding: 0;
           }
 
-          .dashboard-nav-item > span:last-child {
+          .dashboard-nav-item > span:nth-child(2) {
+            display: none;
+          }
+
+          .dashboard-nav-active-bar {
             display: none;
           }
 
@@ -496,7 +579,7 @@ export default function DashboardLayout({
           }
 
           .dashboard-title {
-            font-size: 19px;
+            font-size: 20px;
           }
         }
       `}</style>

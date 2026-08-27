@@ -1,10 +1,6 @@
 import type { ReactNode } from "react";
 
-export type ScenarioStatus =
-  | "ready"
-  | "active"
-  | "completed"
-  | "failed";
+export type ScenarioStatus = "ready" | "active" | "completed" | "failed";
 
 export interface ScenarioEvent {
   event_type: string;
@@ -29,87 +25,35 @@ export interface ScenarioCardProps {
   icon?: ReactNode;
 }
 
-const statusConfig: Record<
-  ScenarioStatus,
-  {
-    label: string;
-    className: string;
-  }
-> = {
-  ready: {
-    label: "READY",
-    className: "scenario-card__status--ready",
-  },
-  active: {
-    label: "ACTIVE",
-    className: "scenario-card__status--active",
-  },
-  completed: {
-    label: "COMPLETED",
-    className: "scenario-card__status--completed",
-  },
-  failed: {
-    label: "FAILED",
-    className: "scenario-card__status--failed",
-  },
+const STATUS_CONFIG: Record<ScenarioStatus, { label: string; color: string; bg: string; border: string; dot: string }> = {
+  ready:     { label: "READY",     color: "#6b7280", bg: "#f9fafb", border: "#e5e7eb", dot: "#9ca3af" },
+  active:    { label: "ACTIVE",    color: "#d97706", bg: "#fffbeb", border: "#fde68a", dot: "#f59e0b" },
+  completed: { label: "COMPLETED", color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0", dot: "#22c55e" },
+  failed:    { label: "FAILED",    color: "#dc2626", bg: "#fef2f2", border: "#fecaca", dot: "#f87171" },
 };
 
 function formatEventType(type: string) {
-  return type
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) =>
-      char.toUpperCase()
-    );
+  return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function formatDate(value?: string) {
   if (!value) return "—";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
 function formatDuration(hours?: number) {
-  if (hours === undefined || hours === null) {
-    return "—";
-  }
-
-  if (hours < 1) {
-    return `${Math.round(hours * 60)} min`;
-  }
-
-  if (Number.isInteger(hours)) {
-    return `${hours} hr`;
-  }
-
+  if (hours === undefined || hours === null) return "—";
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  if (Number.isInteger(hours)) return `${hours} hr`;
   return `${hours.toFixed(1)} hr`;
 }
 
 function formatCost(value?: number) {
-  if (value === undefined || value === null) {
-    return "—";
-  }
-
+  if (value === undefined || value === null) return "—";
   const sign = value > 0 ? "+" : "";
-
-  return `${sign}₹${Math.abs(value).toLocaleString(
-    "en-IN",
-    {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }
-  )}`;
+  return `${sign}₹${Math.abs(value).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
 export default function ScenarioCard({
@@ -125,173 +69,88 @@ export default function ScenarioCard({
   running = false,
   icon,
 }: ScenarioCardProps) {
-  const statusInfo = statusConfig[status];
-
+  const s = STATUS_CONFIG[status];
   const primaryEvent = events[0];
-
-  const isRunnable =
-    status === "ready" && !running;
+  const isRunnable = status === "ready" && !running;
 
   return (
     <>
-      <article className="scenario-card">
-        <header className="scenario-card__header">
-          <div className="scenario-card__identity">
-            <div className="scenario-card__icon">
-              {icon ?? "SC"}
-            </div>
-
-            <div className="scenario-card__heading">
-              <div className="scenario-card__eyebrow">
-                {scenarioId ?? "SCENARIO"}
-              </div>
-
-              <h3 className="scenario-card__title">
-                {name}
-              </h3>
+      <article className="sc">
+        {/* Header */}
+        <header className="sc__header">
+          <div className="sc__identity">
+            <div className="sc__icon">{icon ?? "SC"}</div>
+            <div className="sc__heading">
+              <div className="sc__eyebrow">{scenarioId ?? "SCENARIO"}</div>
+              <h3 className="sc__title">{name}</h3>
             </div>
           </div>
-
-          <div
-            className={`scenario-card__status ${statusInfo.className}`}
-          >
-            <span className="scenario-card__status-dot" />
-            {running ? "RUNNING" : statusInfo.label}
+          <div className="sc__status" style={{ color: s.color, background: s.bg, borderColor: s.border }}>
+            <span className="sc__status-dot" style={{ background: s.dot }} />
+            {running ? "RUNNING" : s.label}
           </div>
         </header>
 
-        {description && (
-          <p className="scenario-card__description">
-            {description}
-          </p>
-        )}
+        {/* Description */}
+        {description && <p className="sc__desc">{description}</p>}
 
+        {/* Primary event */}
         {primaryEvent && (
-          <div className="scenario-card__event">
-            <div className="scenario-card__event-header">
-              <span className="scenario-card__section-label">
-                EVENT
-              </span>
-
-              <span className="scenario-card__event-type">
-                {formatEventType(
-                  primaryEvent.event_type
-                )}
-              </span>
+          <div className="sc__event">
+            <div className="sc__event-header">
+              <span className="sc__section-label">EVENT</span>
+              <span className="sc__event-type">{formatEventType(primaryEvent.event_type)}</span>
             </div>
-
-            <div className="scenario-card__event-grid">
+            <div className="sc__event-grid">
               <div>
-                <span className="scenario-card__field-label">
-                  TARGET
-                </span>
-
-                <span className="scenario-card__field-value scenario-card__field-value--mono">
-                  {primaryEvent.target_id}
-                </span>
+                <span className="sc__field-label">TARGET</span>
+                <span className="sc__field-value sc__field-value--mono">{primaryEvent.target_id}</span>
               </div>
-
               <div>
-                <span className="scenario-card__field-label">
-                  START
-                </span>
-
-                <span className="scenario-card__field-value">
-                  {formatDate(
-                    primaryEvent.start_time
-                  )}
-                </span>
+                <span className="sc__field-label">START</span>
+                <span className="sc__field-value">{formatDate(primaryEvent.start_time)}</span>
               </div>
-
               <div>
-                <span className="scenario-card__field-label">
-                  DURATION
-                </span>
-
-                <span className="scenario-card__field-value">
-                  {formatDuration(
-                    primaryEvent.duration_hours
-                  )}
-                </span>
+                <span className="sc__field-label">DURATION</span>
+                <span className="sc__field-value">{formatDuration(primaryEvent.duration_hours)}</span>
               </div>
-
               <div>
-                <span className="scenario-card__field-label">
-                  IMPACT
-                </span>
-
-                <span className="scenario-card__field-value">
-                  {primaryEvent.impact ?? "—"}
-                </span>
+                <span className="sc__field-label">IMPACT</span>
+                <span className="sc__field-value">{primaryEvent.impact ?? "—"}</span>
               </div>
             </div>
           </div>
         )}
 
+        {/* Additional events */}
         {events.length > 1 && (
-          <div className="scenario-card__events">
-            <span className="scenario-card__section-label">
-              {events.length} EVENTS
-            </span>
-
-            <div className="scenario-card__event-list">
-              {events.slice(1).map((event, index) => (
-                <div
-                  className="scenario-card__event-row"
-                  key={`${event.event_type}-${event.target_id}-${index}`}
-                >
-                  <span className="scenario-card__event-row-type">
-                    {formatEventType(
-                      event.event_type
-                    )}
-                  </span>
-
-                  <span className="scenario-card__event-row-target">
-                    {event.target_id}
-                  </span>
-
-                  <span className="scenario-card__event-row-duration">
-                    {formatDuration(
-                      event.duration_hours
-                    )}
-                  </span>
+          <div className="sc__events">
+            <span className="sc__section-label">{events.length} EVENTS</span>
+            <div className="sc__event-list">
+              {events.slice(1).map((ev, i) => (
+                <div className="sc__event-row" key={`${ev.event_type}-${ev.target_id}-${i}`}>
+                  <span className="sc__event-row-type">{formatEventType(ev.event_type)}</span>
+                  <span className="sc__event-row-target">{ev.target_id}</span>
+                  <span className="sc__event-row-dur">{formatDuration(ev.duration_hours)}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {(affectedOperations !== undefined ||
-          costImpact !== undefined) && (
-          <div className="scenario-card__impact">
+        {/* Impact */}
+        {(affectedOperations !== undefined || costImpact !== undefined) && (
+          <div className="sc__impact">
             {affectedOperations !== undefined && (
-              <div className="scenario-card__impact-item">
-                <span className="scenario-card__field-label">
-                  AFFECTED
-                </span>
-
-                <span className="scenario-card__impact-value">
-                  {affectedOperations}
-                  <small> ops</small>
-                </span>
+              <div className="sc__impact-item">
+                <span className="sc__field-label">AFFECTED</span>
+                <span className="sc__impact-value">{affectedOperations}<small> ops</small></span>
               </div>
             )}
-
             {costImpact !== undefined && (
-              <div className="scenario-card__impact-item">
-                <span className="scenario-card__field-label">
-                  COST IMPACT
-                </span>
-
-                <span
-                  className={`scenario-card__impact-value ${
-                    costImpact > 0
-                      ? "scenario-card__impact-value--negative"
-                      : costImpact < 0
-                        ? "scenario-card__impact-value--positive"
-                        : ""
-                  }`}
-                >
+              <div className="sc__impact-item">
+                <span className="sc__field-label">COST IMPACT</span>
+                <span className={`sc__impact-value ${costImpact > 0 ? "sc__impact-value--neg" : costImpact < 0 ? "sc__impact-value--pos" : ""}`}>
                   {formatCost(costImpact)}
                 </span>
               </div>
@@ -299,47 +158,22 @@ export default function ScenarioCard({
           </div>
         )}
 
-        <footer className="scenario-card__footer">
-          <div className="scenario-card__footer-meta">
-            {events.length > 0 ? (
-              <span>
-                {events.length}{" "}
-                {events.length === 1
-                  ? "event"
-                  : "events"}{" "}
-                configured
-              </span>
-            ) : (
-              <span>No events configured</span>
-            )}
+        {/* Footer */}
+        <footer className="sc__footer">
+          <div className="sc__footer-meta">
+            {events.length > 0 ? `${events.length} ${events.length === 1 ? "event" : "events"} configured` : "No events configured"}
           </div>
-
-          <div className="scenario-card__actions">
+          <div className="sc__actions">
             {onView && (
-              <button
-                type="button"
-                className="scenario-card__button scenario-card__button--secondary"
-                onClick={onView}
-              >
+              <button type="button" className="sc__btn sc__btn--secondary" onClick={onView}>
                 VIEW
               </button>
             )}
-
             {onRun && (
-              <button
-                type="button"
-                className="scenario-card__button scenario-card__button--primary"
-                onClick={onRun}
-                disabled={!isRunnable}
-              >
+              <button type="button" className="sc__btn sc__btn--primary" onClick={onRun} disabled={!isRunnable}>
                 {running ? (
-                  <>
-                    <span className="scenario-card__spinner" />
-                    RUNNING
-                  </>
-                ) : (
-                  "RUN SCENARIO"
-                )}
+                  <><span className="sc__spinner" />RUNNING</>
+                ) : "RUN SCENARIO"}
               </button>
             )}
           </div>
@@ -347,542 +181,316 @@ export default function ScenarioCard({
       </article>
 
       <style>{`
-        .scenario-card {
+        .sc {
           width: 100%;
           overflow: hidden;
-
-          background: #0b0c0d;
-          border: 1px solid #25282b;
-          border-radius: 9px;
-
-          color: #e7e9e8;
-
-          transition:
-            border-color 160ms ease,
-            background 160ms ease;
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          color: #111827;
+          transition: border-color 160ms ease, box-shadow 160ms ease;
         }
 
-        .scenario-card:hover {
-          background: #0d0f10;
-          border-color: #303437;
+        .sc:hover {
+          border-color: #d1d5db;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         }
 
-        /* -------------------------
-           HEADER
-           ------------------------- */
-
-        .scenario-card__header {
+        /* Header */
+        .sc__header {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 20px;
-
-          padding: 18px 19px 15px;
-
-          border-bottom: 1px solid #202326;
+          gap: 16px;
+          padding: 18px 20px 16px;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-card__identity {
+        .sc__identity {
           display: flex;
           align-items: center;
-          gap: 11px;
-
+          gap: 12px;
           min-width: 0;
         }
 
-        .scenario-card__icon {
+        .sc__icon {
           display: flex;
           align-items: center;
           justify-content: center;
-
-          width: 31px;
-          height: 31px;
-          flex: 0 0 31px;
-
-          border: 1px solid #34383a;
-          border-radius: 5px;
-
-          background: #101213;
-
-          color: #8a9092;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
+          width: 34px;
+          height: 34px;
+          flex: 0 0 34px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          background: #f9fafb;
+          color: #6b7280;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.04em;
         }
 
-        .scenario-card__heading {
-          min-width: 0;
-        }
+        .sc__heading { min-width: 0; }
 
-        .scenario-card__eyebrow {
-          margin-bottom: 5px;
-
-          color: #555c60;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+        .sc__eyebrow {
+          margin-bottom: 4px;
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           font-weight: 600;
           letter-spacing: 0.1em;
-
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .scenario-card__title {
+        .sc__title {
           margin: 0;
-
-          overflow: hidden;
-
-          color: #e6e8e7;
-
-          font-size: 13px;
-          font-weight: 500;
+          color: #111827;
+          font-size: 14px;
+          font-weight: 600;
           letter-spacing: -0.01em;
-
+          overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        /* -------------------------
-           STATUS
-           ------------------------- */
-
-        .scenario-card__status {
+        .sc__status {
           display: inline-flex;
           align-items: center;
-          gap: 7px;
-
+          gap: 6px;
           flex: 0 0 auto;
-
-          padding: 5px 8px;
-
+          padding: 4px 9px;
           border: 1px solid;
-          border-radius: 4px;
-
-          font-size: 7px;
+          border-radius: 20px;
+          font-size: 9px;
           font-weight: 700;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.1em;
         }
 
-        .scenario-card__status-dot {
+        .sc__status-dot {
           width: 5px;
           height: 5px;
-
           border-radius: 50%;
-
-          background: currentColor;
         }
 
-        .scenario-card__status--ready {
-          color: #8b9192;
-          border-color: #303437;
-        }
-
-        .scenario-card__status--active {
-          color: #c5a568;
-          border-color: #423822;
-        }
-
-        .scenario-card__status--completed {
-          color: #8eaa97;
-          border-color: #29372e;
-        }
-
-        .scenario-card__status--failed {
-          color: #c9827b;
-          border-color: #402b29;
-        }
-
-        /* -------------------------
-           DESCRIPTION
-           ------------------------- */
-
-        .scenario-card__description {
+        /* Description */
+        .sc__desc {
           margin: 0;
-          padding: 14px 19px;
-
-          color: #656c70;
-
-          font-size: 10px;
+          padding: 12px 20px;
+          color: #6b7280;
+          font-size: 12px;
           line-height: 1.55;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        /* -------------------------
-           EVENT
-           ------------------------- */
-
-        .scenario-card__event {
-          margin: 0 19px;
-
-          padding: 13px 0;
-
-          border-top: 1px solid #1e2123;
-          border-bottom: 1px solid #1e2123;
+        /* Primary event */
+        .sc__event {
+          margin: 0 20px;
+          padding: 12px 0;
+          border-top: 1px solid #f3f4f6;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-card__event-header {
+        .sc__event-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 15px;
-
-          margin-bottom: 13px;
+          gap: 12px;
+          margin-bottom: 12px;
         }
 
-        .scenario-card__section-label {
-          color: #555c60;
-
-          font-size: 7px;
+        .sc__section-label {
+          color: #9ca3af;
+          font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.14em;
         }
 
-        .scenario-card__event-type {
-          color: #979d9e;
-
-          font-size: 8px;
+        .sc__event-type {
+          color: #374151;
+          font-size: 11px;
           font-weight: 500;
-          letter-spacing: 0.04em;
         }
 
-        .scenario-card__event-grid {
+        .sc__event-grid {
           display: grid;
-          grid-template-columns:
-            repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 12px;
         }
 
-        .scenario-card__event-grid > div {
-          min-width: 0;
-        }
-
-        .scenario-card__field-label {
+        .sc__field-label {
           display: block;
-
-          margin-bottom: 6px;
-
-          color: #4f565a;
-
-          font-size: 7px;
-          font-weight: 700;
-          letter-spacing: 0.12em;
-        }
-
-        .scenario-card__field-value {
-          display: block;
-
-          overflow: hidden;
-
-          color: #afb4b3;
-
+          margin-bottom: 4px;
+          color: #9ca3af;
           font-size: 9px;
-          line-height: 1.3;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+        }
 
+        .sc__field-value {
+          display: block;
+          overflow: hidden;
+          color: #374151;
+          font-size: 11px;
+          line-height: 1.3;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .scenario-card__field-value--mono {
-          color: #c2c6c5;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
+        .sc__field-value--mono {
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          color: #111827;
         }
 
-        /* -------------------------
-           MULTIPLE EVENTS
-           ------------------------- */
+        /* Additional events */
+        .sc__events { padding: 12px 20px 0; }
 
-        .scenario-card__events {
-          padding: 13px 19px 0;
-        }
+        .sc__event-list { margin-top: 8px; }
 
-        .scenario-card__event-list {
-          margin-top: 9px;
-        }
-
-        .scenario-card__event-row {
+        .sc__event-row {
           display: grid;
-          grid-template-columns:
-            minmax(0, 1fr)
-            minmax(90px, auto)
-            auto;
+          grid-template-columns: minmax(0, 1fr) minmax(90px, auto) auto;
           align-items: center;
           gap: 12px;
-
-          min-height: 31px;
-
-          border-top: 1px solid #1b1e20;
+          min-height: 32px;
+          border-top: 1px solid #f3f4f6;
         }
 
-        .scenario-card__event-row-type {
+        .sc__event-row-type {
           overflow: hidden;
-
-          color: #8b9192;
-
-          font-size: 8px;
-
+          color: #374151;
+          font-size: 11px;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .scenario-card__event-row-target {
-          color: #676e72;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
+        .sc__event-row-target {
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 10px;
         }
 
-        .scenario-card__event-row-duration {
-          color: #696f73;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 8px;
+        .sc__event-row-dur {
+          color: #9ca3af;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 10px;
           text-align: right;
         }
 
-        /* -------------------------
-           IMPACT
-           ------------------------- */
-
-        .scenario-card__impact {
+        /* Impact */
+        .sc__impact {
           display: flex;
           gap: 1px;
-
-          margin-top: 14px;
-
-          background: #202326;
-          border-top: 1px solid #202326;
-          border-bottom: 1px solid #202326;
+          margin-top: 12px;
+          background: #f3f4f6;
+          border-top: 1px solid #f3f4f6;
+          border-bottom: 1px solid #f3f4f6;
         }
 
-        .scenario-card__impact-item {
+        .sc__impact-item {
           display: flex;
           flex-direction: column;
-          gap: 6px;
-
+          gap: 5px;
           flex: 1;
-
-          padding: 11px 19px;
-
-          background: #0e1011;
+          padding: 12px 20px;
+          background: #f9fafb;
         }
 
-        .scenario-card__impact-value {
-          color: #d4d7d5;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 13px;
-          font-weight: 500;
+        .sc__impact-value {
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 15px;
+          font-weight: 600;
+          color: #111827;
           font-variant-numeric: tabular-nums;
         }
 
-        .scenario-card__impact-value small {
-          color: #646b6e;
-          font-size: 8px;
-          font-weight: 400;
-        }
+        .sc__impact-value small { color: #9ca3af; font-size: 10px; font-weight: 400; }
+        .sc__impact-value--pos { color: #15803d; }
+        .sc__impact-value--neg { color: #dc2626; }
 
-        .scenario-card__impact-value--positive {
-          color: #8fac99;
-        }
-
-        .scenario-card__impact-value--negative {
-          color: #c9857e;
-        }
-
-        /* -------------------------
-           FOOTER
-           ------------------------- */
-
-        .scenario-card__footer {
+        /* Footer */
+        .sc__footer {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 15px;
-
-          padding: 13px 19px;
+          gap: 12px;
+          padding: 12px 20px;
         }
 
-        .scenario-card__footer-meta {
+        .sc__footer-meta {
           min-width: 0;
-
-          color: #4f565a;
-
-          font-size: 8px;
-
+          color: #9ca3af;
+          font-size: 11px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .scenario-card__actions {
-          display: flex;
-          align-items: center;
-          gap: 7px;
+        .sc__actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 
-          flex: 0 0 auto;
-        }
-
-        .scenario-card__button {
+        .sc__btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 7px;
-
-          height: 29px;
-
-          padding: 0 10px;
-
-          border-radius: 4px;
-
-          font-family:
-            "SFMono-Regular",
-            "Cascadia Code",
-            "Roboto Mono",
-            monospace;
-
-          font-size: 7px;
+          gap: 6px;
+          height: 32px;
+          padding: 0 12px;
+          border-radius: 6px;
+          font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+          font-size: 9px;
           font-weight: 700;
-          letter-spacing: 0.08em;
-
+          letter-spacing: 0.07em;
           cursor: pointer;
-
-          transition:
-            background 140ms ease,
-            border-color 140ms ease,
-            color 140ms ease;
+          transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
         }
 
-        .scenario-card__button:disabled {
-          cursor: default;
-          opacity: 0.45;
+        .sc__btn:disabled { cursor: default; opacity: 0.45; }
+
+        .sc__btn--secondary {
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          color: #6b7280;
         }
 
-        .scenario-card__button--secondary {
-          background: #0e1011;
-          border: 1px solid #292d30;
-          color: #777e81;
+        .sc__btn--secondary:hover {
+          background: #f9fafb;
+          border-color: #d1d5db;
+          color: #374151;
         }
 
-        .scenario-card__button--secondary:hover {
-          background: #141618;
-          border-color: #383d40;
-          color: #b0b5b4;
+        .sc__btn--primary {
+          background: #111827;
+          border: 1px solid #111827;
+          color: #ffffff;
         }
 
-        .scenario-card__button--primary {
-          background: #d5d6d1;
-          border: 1px solid #d5d6d1;
-          color: #111314;
+        .sc__btn--primary:hover:not(:disabled) {
+          background: #1f2937;
+          border-color: #1f2937;
         }
 
-        .scenario-card__button--primary:hover:not(:disabled) {
-          background: #ecece7;
-          border-color: #ecece7;
-        }
-
-        .scenario-card__spinner {
+        .sc__spinner {
           width: 8px;
           height: 8px;
-
-          border: 1px solid #555;
-          border-top-color: #111;
-
+          border: 1px solid rgba(255,255,255,0.3);
+          border-top-color: #ffffff;
           border-radius: 50%;
-
-          animation: scenario-card-spin 650ms linear infinite;
+          animation: sc-spin 650ms linear infinite;
         }
 
-        @keyframes scenario-card-spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        /* -------------------------
-           RESPONSIVE
-           ------------------------- */
+        @keyframes sc-spin { to { transform: rotate(360deg); } }
 
         @media (max-width: 700px) {
-          .scenario-card__event-grid {
-            grid-template-columns:
-              repeat(2, minmax(0, 1fr));
-          }
+          .sc__event-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (max-width: 500px) {
-          .scenario-card__header {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .scenario-card__status {
-            align-self: flex-start;
-          }
-
-          .scenario-card__event-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .scenario-card__footer {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .scenario-card__actions {
-            width: 100%;
-          }
-
-          .scenario-card__button {
-            flex: 1;
-          }
-        }
-
-        @media (max-width: 360px) {
-          .scenario-card__event-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .scenario-card__event-row {
-            grid-template-columns:
-              1fr auto;
-          }
-
-          .scenario-card__event-row-duration {
-            display: none;
-          }
+          .sc__header { align-items: flex-start; flex-direction: column; }
+          .sc__status { align-self: flex-start; }
+          .sc__footer { align-items: flex-start; flex-direction: column; }
+          .sc__actions { width: 100%; }
+          .sc__btn { flex: 1; }
         }
       `}</style>
     </>

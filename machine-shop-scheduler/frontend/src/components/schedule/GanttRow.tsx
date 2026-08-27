@@ -22,142 +22,63 @@ export interface GanttBreakdown {
 interface GanttRowProps {
   machineId: string;
   operations: GanttRowOperation[];
-
   timelineStart: number;
   timelineDuration: number;
-
   tickRatios?: number[];
-
   breakdowns?: GanttBreakdown[];
-
   selectedOperation?: GanttRowOperation | null;
-
-  onOperationClick?: (
-    operation: GanttRowOperation
-  ) => void;
+  onOperationClick?: (op: GanttRowOperation) => void;
 }
 
-const OPERATION_LABELS: Record<string, string> = {
+const OP_LABELS: Record<string, string> = {
   "CNC Lathe": "LATHE",
   Milling: "MILL",
   Drill: "DRILL",
   Grinding: "GRIND",
-  Inspection: "INSPECT",
+  Inspection: "INSP",
 };
 
-function operationLabel(type: string) {
-  return (
-    OPERATION_LABELS[type] ??
-    type.toUpperCase()
-  );
+// Light-theme palette per operation type
+const OP_STYLES: Record<string, { bg: string; border: string; text: string; label: string }> = {
+  "CNC Lathe":  { bg: "#dbeafe", border: "#93c5fd", text: "#1d4ed8", label: "#3b82f6" },
+  Milling:      { bg: "#dcfce7", border: "#86efac", text: "#15803d", label: "#22c55e" },
+  Drill:        { bg: "#ede9fe", border: "#c4b5fd", text: "#7c3aed", label: "#a78bfa" },
+  Grinding:     { bg: "#fef3c7", border: "#fcd34d", text: "#92400e", label: "#f59e0b" },
+  Inspection:   { bg: "#f3f4f6", border: "#d1d5db", text: "#374151", label: "#9ca3af" },
+  default:      { bg: "#f0f9ff", border: "#bae6fd", text: "#0369a1", label: "#38bdf8" },
+};
+
+function getOpStyle(type: string) {
+  return OP_STYLES[type] ?? OP_STYLES.default;
 }
 
-function getOperationClass(type: string) {
-  switch (type) {
-    case "CNC Lathe":
-      return "gantt-row__bar--lathe";
-
-    case "Milling":
-      return "gantt-row__bar--milling";
-
-    case "Drill":
-      return "gantt-row__bar--drill";
-
-    case "Grinding":
-      return "gantt-row__bar--grinding";
-
-    case "Inspection":
-      return "gantt-row__bar--inspection";
-
-    default:
-      return "gantt-row__bar--default";
-  }
+function getOpLabel(type: string) {
+  return OP_LABELS[type] ?? type.slice(0, 6).toUpperCase();
 }
 
 function formatDuration(minutes: number) {
-  if (minutes < 60) {
-    return `${Math.round(minutes)}m`;
-  }
-
-  const hours = minutes / 60;
-
-  if (hours < 24) {
-    return `${hours.toFixed(1)}h`;
-  }
-
-  const days = Math.floor(hours / 24);
-  const remainingHours = Math.round(hours % 24);
-
-  if (remainingHours === 0) {
-    return `${days}d`;
-  }
-
-  return `${days}d ${remainingHours}h`;
+  if (minutes < 60) return `${Math.round(minutes)}m`;
+  const h = minutes / 60;
+  if (h < 24) return `${h.toFixed(1)}h`;
+  const d = Math.floor(h / 24);
+  const rem = Math.round(h % 24);
+  return rem === 0 ? `${d}d` : `${d}d ${rem}h`;
 }
 
-function getOperationPosition(
-  operation: GanttRowOperation,
-  timelineStart: number,
-  timelineDuration: number
-) {
-  const start = new Date(
-    operation.start_time
-  ).getTime();
-
-  const end = new Date(
-    operation.end_time
-  ).getTime();
-
-  const left =
-    ((start - timelineStart) /
-      timelineDuration) *
-    100;
-
-  const width =
-    ((end - start) /
-      timelineDuration) *
-    100;
-
-  return {
-    left: `${Math.max(0, left)}%`,
-    width: `${Math.max(0.15, width)}%`,
-  };
+function getOpPosition(op: GanttRowOperation, start: number, duration: number) {
+  const s = new Date(op.start_time).getTime();
+  const e = new Date(op.end_time).getTime();
+  const left = ((s - start) / duration) * 100;
+  const width = ((e - s) / duration) * 100;
+  return { left: `${Math.max(0, left)}%`, width: `${Math.max(0.3, width)}%` };
 }
 
-function getBreakdownPosition(
-  breakdown: GanttBreakdown,
-  timelineStart: number,
-  timelineDuration: number
-) {
-  const start = new Date(
-    breakdown.start_time
-  ).getTime();
-
-  const end =
-    start +
-    breakdown.duration_hours *
-      60 *
-      60 *
-      1000;
-
-  const left =
-    ((start - timelineStart) /
-      timelineDuration) *
-    100;
-
-  const width =
-    ((end - start) /
-      timelineDuration) *
-    100;
-
-  return {
-    left: `${Math.max(0, left)}%`,
-    width: `${Math.max(0.2, width)}%`,
-  };
-}
-
-function formatMachineId(machineId: string) {
-  return machineId;
+function getBreakdownPosition(bd: GanttBreakdown, start: number, duration: number) {
+  const s = new Date(bd.start_time).getTime();
+  const e = s + bd.duration_hours * 3600000;
+  const left = ((s - start) / duration) * 100;
+  const width = ((e - s) / duration) * 100;
+  return { left: `${Math.max(0, left)}%`, width: `${Math.max(0.3, width)}%` };
 }
 
 export default function GanttRow({
@@ -170,458 +91,228 @@ export default function GanttRow({
   selectedOperation,
   onOperationClick,
 }: GanttRowProps) {
-  const machineBreakdowns = breakdowns.filter(
-    (breakdown) =>
-      breakdown.machine_id === machineId
-  );
-
-  const sortedOperations = [
-    ...operations,
-  ].sort(
-    (a, b) =>
-      new Date(a.start_time).getTime() -
-      new Date(b.start_time).getTime()
+  const machineBreakdowns = breakdowns.filter((b) => b.machine_id === machineId);
+  const sorted = [...operations].sort(
+    (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
   );
 
   return (
-    <div className="gantt-row">
-      {/* Machine identity */}
-      <div className="gantt-row__machine">
-        <span className="gantt-row__status" />
-
-        <div className="gantt-row__machine-info">
-          <strong>
-            {formatMachineId(machineId)}
-          </strong>
-
-          <span>
-            {sortedOperations.length}{" "}
-            {sortedOperations.length === 1
-              ? "operation"
-              : "operations"}
-          </span>
+    <>
+      <div className="gr">
+        {/* Machine label */}
+        <div className="gr__machine">
+          <span className="gr__status" />
+          <div className="gr__info">
+            <strong>{machineId}</strong>
+            <span>{sorted.length} {sorted.length === 1 ? "op" : "ops"}</span>
+          </div>
         </div>
-      </div>
 
-      {/* Timeline track */}
-      <div className="gantt-row__track">
-        {/* Timeline grid */}
-        {tickRatios.map(
-          (ratio, index) => (
-            <div
-              className="gantt-row__grid-line"
-              key={`grid-${index}`}
-              style={{
-                left: `${ratio * 100}%`,
-              }}
-            />
-          )
-        )}
+        {/* Track */}
+        <div className="gr__track">
+          {tickRatios.map((r, i) => (
+            <div className="gr__grid" key={i} style={{ left: `${r * 100}%` }} />
+          ))}
 
-        {/* Machine downtime */}
-        {machineBreakdowns.map(
-          (breakdown, index) => (
+          {machineBreakdowns.map((bd, i) => (
             <div
-              className="gantt-row__breakdown"
-              key={`${breakdown.machine_id}-${breakdown.start_time}-${index}`}
-              style={getBreakdownPosition(
-                breakdown,
-                timelineStart,
-                timelineDuration
-              )}
-              title={
-                breakdown.label ??
-                "Machine downtime"
-              }
+              key={i}
+              className="gr__breakdown"
+              style={getBreakdownPosition(bd, timelineStart, timelineDuration)}
+              title={bd.label ?? "Machine downtime"}
             >
               <span>DOWN</span>
             </div>
-          )
-        )}
+          ))}
 
-        {/* Operations */}
-        {sortedOperations.map(
-          (operation) => {
+          {sorted.map((op) => {
+            const style = getOpStyle(op.operation_type);
             const selected =
-              selectedOperation?.order_id ===
-                operation.order_id &&
-              selectedOperation?.op_seq ===
-                operation.op_seq;
+              selectedOperation?.order_id === op.order_id &&
+              selectedOperation?.op_seq === op.op_seq;
 
             return (
               <button
                 type="button"
-                key={`${operation.order_id}-${operation.op_seq}`}
-                className={[
-                  "gantt-row__bar",
-                  getOperationClass(
-                    operation.operation_type
-                  ),
-                  selected
-                    ? "gantt-row__bar--selected"
-                    : "",
-                  operation.is_overtime
-                    ? "gantt-row__bar--overtime"
-                    : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                style={getOperationPosition(
-                  operation,
-                  timelineStart,
-                  timelineDuration
-                )}
-                onClick={() =>
-                  onOperationClick?.(
-                    operation
-                  )
-                }
-                aria-label={`${operation.order_id}, operation ${operation.op_seq}, ${operation.operation_type}`}
-                title={[
-                  operation.order_id,
-                  operation.operation_type,
-                  operation.machine_id,
-                  operation.operator_id,
-                  formatDuration(
-                    operation.duration_minutes
-                  ),
-                ].join(" · ")}
+                key={`${op.order_id}-${op.op_seq}`}
+                className={["gr__bar", selected ? "gr__bar--selected" : "", op.is_overtime ? "gr__bar--overtime" : ""].filter(Boolean).join(" ")}
+                style={{
+                  ...getOpPosition(op, timelineStart, timelineDuration),
+                  background: style.bg,
+                  borderColor: selected ? style.text : style.border,
+                  borderStyle: op.is_overtime ? "dashed" : "solid",
+                }}
+                onClick={() => onOperationClick?.(op)}
+                title={[op.order_id, op.operation_type, op.machine_id, op.operator_id, formatDuration(op.duration_minutes)].join(" · ")}
               >
-                <span className="gantt-row__bar-content">
-                  <strong>
-                    {operation.order_id}
-                  </strong>
-
-                  <span>
-                    {operationLabel(
-                      operation.operation_type
-                    )}
-                  </span>
+                <span className="gr__bar-content">
+                  <strong style={{ color: style.text }}>{op.order_id}</strong>
+                  <span style={{ color: style.label }}>{getOpLabel(op.operation_type)}</span>
                 </span>
               </button>
             );
-          }
-        )}
+          })}
+        </div>
       </div>
-
       <style>{styles}</style>
-    </div>
+    </>
   );
 }
 
 const styles = `
-  .gantt-row {
+  .gr {
     display: grid;
-    grid-template-columns:
-      145px minmax(600px, 1fr);
-
-    min-height: 62px;
-
-    border-bottom: 1px solid #1d2022;
+    grid-template-columns: 160px minmax(600px, 1fr);
+    min-height: 58px;
+    border-bottom: 1px solid #f3f4f6;
   }
 
-  /* -------------------------
-     MACHINE
-     ------------------------- */
+  .gr:last-child { border-bottom: 0; }
+  .gr:hover { background: #fafafa; }
 
-  .gantt-row__machine {
+  /* Machine column */
+  .gr__machine {
     display: flex;
     align-items: center;
-    gap: 9px;
-
-    min-width: 0;
-
-    padding: 0 12px 0 17px;
-
-    border-right: 1px solid #292d30;
-
-    background: #0c0e0f;
+    gap: 10px;
+    padding: 0 14px 0 20px;
+    border-right: 1px solid #e5e7eb;
+    background: #ffffff;
   }
 
-  .gantt-row__status {
-    width: 5px;
-    height: 5px;
-    flex: 0 0 5px;
-
+  .gr__status {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
     border-radius: 50%;
-
-    background: #7f9183;
-
-    box-shadow:
-      0 0 0 3px #162018;
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
   }
 
-  .gantt-row__machine-info {
+  .gr__info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-
+    gap: 3px;
     min-width: 0;
   }
 
-  .gantt-row__machine-info strong {
+  .gr__info strong {
+    color: #111827;
+    font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+    font-size: 10px;
+    font-weight: 700;
     overflow: hidden;
-
-    color: #a5aaa9;
-
-    font-family:
-      "SFMono-Regular",
-      "Cascadia Code",
-      "Roboto Mono",
-      monospace;
-
-    font-size: 8px;
-    font-weight: 600;
-
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .gantt-row__machine-info span {
-    color: #4f5659;
-
-    font-size: 7px;
-
+  .gr__info span {
+    color: #9ca3af;
+    font-size: 9px;
     white-space: nowrap;
   }
 
-  /* -------------------------
-     TRACK
-     ------------------------- */
-
-  .gantt-row__track {
+  /* Track */
+  .gr__track {
     position: relative;
-
     min-width: 600px;
-
-    background:
-      linear-gradient(
-        to bottom,
-        transparent 0%,
-        transparent 49%,
-        #111416 50%,
-        transparent 51%
-      );
+    background: #ffffff;
   }
 
-  .gantt-row__grid-line {
+  .gr__grid {
     position: absolute;
     top: 0;
     bottom: 0;
-
     width: 1px;
-
-    background: #191c1e;
-
+    background: #f3f4f6;
     pointer-events: none;
   }
 
-  /* -------------------------
-     OPERATION BAR
-     ------------------------- */
-
-  .gantt-row__bar {
+  /* Operation bars */
+  .gr__bar {
     position: absolute;
-    top: 15px;
-
-    display: block;
-
-    height: 31px;
-    min-width: 4px;
-
-    padding: 0 7px;
-
+    top: 12px;
+    height: 34px;
+    min-width: 6px;
+    padding: 0 8px;
     overflow: hidden;
-
     border: 1px solid transparent;
-    border-radius: 4px;
-
+    border-radius: 6px;
     outline: none;
-
-    color: #d1d4d2;
-
     text-align: left;
-
     cursor: pointer;
-
-    transition:
-      filter 120ms ease,
-      border-color 120ms ease,
-      transform 120ms ease,
-      box-shadow 120ms ease;
-
+    transition: filter 120ms ease, transform 120ms ease, box-shadow 120ms ease;
     z-index: 3;
   }
 
-  .gantt-row__bar:hover {
-    filter: brightness(1.18);
-
-    transform:
-      translateY(-1px);
-
+  .gr__bar:hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     z-index: 6;
   }
 
-  .gantt-row__bar:focus-visible {
-    border-color: #aeb5b2;
-
-    box-shadow:
-      0 0 0 2px
-      rgba(174, 181, 178, 0.14);
-
+  .gr__bar:focus-visible {
+    box-shadow: 0 0 0 2px #6b7280;
     z-index: 7;
   }
 
-  .gantt-row__bar--selected {
-    border-color: #c4c8c5 !important;
-
-    box-shadow:
-      0 0 0 2px
-      rgba(196, 200, 197, 0.12);
-
+  .gr__bar--selected {
+    box-shadow: 0 0 0 2px rgba(3,105,161,0.25);
     z-index: 7;
   }
 
-  /* -------------------------
-     OPERATION TYPES
-     ------------------------- */
-
-  .gantt-row__bar--lathe {
-    background: #30383c;
-    border-color: #4b565b;
-  }
-
-  .gantt-row__bar--milling {
-    background: #303a32;
-    border-color: #4b594d;
-  }
-
-  .gantt-row__bar--drill {
-    background: #39333c;
-    border-color: #554d59;
-  }
-
-  .gantt-row__bar--grinding {
-    background: #403a31;
-    border-color: #5e5548;
-  }
-
-  .gantt-row__bar--inspection {
-    background: #2c3335;
-    border-color: #465054;
-  }
-
-  .gantt-row__bar--default {
-    background: #303437;
-    border-color: #484c4f;
-  }
-
-  .gantt-row__bar--overtime {
-    border-style: dashed;
-  }
-
-  /* -------------------------
-     BAR CONTENT
-     ------------------------- */
-
-  .gantt-row__bar-content {
+  .gr__bar-content {
     display: flex;
     align-items: center;
-    gap: 7px;
-
+    gap: 6px;
     width: 100%;
     height: 100%;
-
     overflow: hidden;
-
     white-space: nowrap;
   }
 
-  .gantt-row__bar-content strong {
+  .gr__bar-content strong {
+    font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+    font-size: 9px;
+    font-weight: 700;
     overflow: hidden;
-
-    color: #d2d5d3;
-
-    font-family:
-      "SFMono-Regular",
-      "Cascadia Code",
-      "Roboto Mono",
-      monospace;
-
-    font-size: 7px;
-    font-weight: 600;
-
     text-overflow: ellipsis;
   }
 
-  .gantt-row__bar-content span {
-    color: #8f9798;
-
-    font-size: 6px;
+  .gr__bar-content span {
+    font-size: 8px;
     font-weight: 700;
-
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
   }
 
-  /* -------------------------
-     DOWNTIME
-     ------------------------- */
-
-  .gantt-row__breakdown {
+  /* Breakdown overlay */
+  .gr__breakdown {
     position: absolute;
     top: 0;
     bottom: 0;
-
     z-index: 2;
-
     display: flex;
     align-items: flex-start;
     justify-content: center;
-
-    background:
-      repeating-linear-gradient(
-        135deg,
-        rgba(111, 103, 85, 0.19) 0px,
-        rgba(111, 103, 85, 0.19) 3px,
-        rgba(34, 33, 29, 0.18) 3px,
-        rgba(34, 33, 29, 0.18) 6px
-      );
-
-    border-left: 1px dashed #625c4f;
-    border-right: 1px dashed #625c4f;
-
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(251,146,60,0.12) 0px,
+      rgba(251,146,60,0.12) 3px,
+      rgba(255,255,255,0.1) 3px,
+      rgba(255,255,255,0.1) 6px
+    );
+    border-left: 1px dashed #f97316;
+    border-right: 1px dashed #f97316;
     pointer-events: none;
   }
 
-  .gantt-row__breakdown span {
-    margin-top: 4px;
-
-    color: #827b6b;
-
-    font-family:
-      "SFMono-Regular",
-      "Cascadia Code",
-      "Roboto Mono",
-      monospace;
-
-    font-size: 5px;
+  .gr__breakdown span {
+    margin-top: 5px;
+    color: #ea580c;
+    font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace;
+    font-size: 7px;
     font-weight: 700;
-
     letter-spacing: 0.08em;
-  }
-
-  /* -------------------------
-     RESPONSIVE
-     ------------------------- */
-
-  @media (max-width: 500px) {
-    .gantt-row {
-      grid-template-columns:
-        115px minmax(600px, 1fr);
-    }
-
-    .gantt-row__machine {
-      padding-left: 12px;
-    }
   }
 `;
