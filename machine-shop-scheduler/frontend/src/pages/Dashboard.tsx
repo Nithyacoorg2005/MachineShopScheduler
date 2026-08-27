@@ -18,8 +18,10 @@ type CostBreakdown = {
     late_penalty: number;
     overtime_cost: number;
     changeover_cost: number;
+    stability_penalty: number;
     total_cost: number;
   };
+
   replanned?: {
     late_penalty: number;
     overtime_cost: number;
@@ -27,6 +29,7 @@ type CostBreakdown = {
     stability_penalty: number;
     total_cost: number;
   };
+
   delta?: {
     late_penalty: number;
     overtime_cost: number;
@@ -55,951 +58,518 @@ type ScenarioEvent = {
 const API_BASE = "http://127.0.0.1:8000/api";
 
 const defaultScenario = {
-  context: {
-    current_time: "2026-08-25T16:30:00Z",
-    active_shift: "A",
-  },
+  context: { current_time: "2026-08-25T16:30:00Z", active_shift: "A" },
   events: [
-    {
-      event_type: "MACHINE_BREAKDOWN",
-      target_id: "GRINDER-01",
-      start_time: "2026-08-25T11:00:00Z",
-      end_time: "2026-08-25T19:00:00Z",
-    },
-    {
-      event_type: "OPERATOR_ABSENCE",
-      target_id: "OP-001",
-      start_time: "2026-08-25T11:30:00Z",
-      end_time: "2026-08-25T20:00:00Z",
-    },
+    { event_type: "MACHINE_BREAKDOWN", target_id: "GRINDER-01", start_time: "2026-08-25T11:00:00Z", end_time: "2026-08-25T19:00:00Z" },
+    { event_type: "OPERATOR_ABSENCE",  target_id: "OP-001",      start_time: "2026-08-25T11:30:00Z", end_time: "2026-08-25T20:00:00Z" },
   ],
 };
 
-function formatCurrency(value: number | undefined) {
-  return `₹${Number(value || 0).toLocaleString("en-IN", {
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function formatTime(value: string) {
-  if (!value) return "—";
-  return new Date(value).toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
-function formatDate(value: string) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-const OP_TYPE_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  lathe:      { color: "#1d5fa8", bg: "#dbeafe", label: "Lathe" },
-  milling:    { color: "#166534", bg: "#dcfce7", label: "Milling" },
-  drill:      { color: "#6b21a8", bg: "#ede9fe", label: "Drill" },
-  grinding:   { color: "#92400e", bg: "#fef3c7", label: "Grinding" },
-  inspection: { color: "#374151", bg: "#f3f4f6", label: "Inspection" },
-  default:    { color: "#374151", bg: "#f3f4f6", label: "Other" },
+const OP_TYPE_CONFIG: Record<string, { color: string; bg: string; border: string; label: string }> = {
+  lathe:      { color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe", label: "Lathe" },
+  milling:    { color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0", label: "Milling" },
+  drill:      { color: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe", label: "Drill" },
+  grinding:   { color: "#b45309", bg: "#fffbeb", border: "#fde68a", label: "Grinding" },
+  inspection: { color: "#374151", bg: "#f9fafb", border: "#e5e7eb", label: "Inspection" },
+  default:    { color: "#374151", bg: "#f9fafb", border: "#e5e7eb", label: "Other" },
 };
 
-function getOpType(operationType: string) {
-  const type = operationType.toLowerCase();
-  if (type.includes("lathe")) return OP_TYPE_CONFIG.lathe;
-  if (type.includes("mill")) return OP_TYPE_CONFIG.milling;
-  if (type.includes("drill")) return OP_TYPE_CONFIG.drill;
-  if (type.includes("grind")) return OP_TYPE_CONFIG.grinding;
-  if (type.includes("inspect")) return OP_TYPE_CONFIG.inspection;
+function getOpType(t: string) {
+  const s = t.toLowerCase();
+  if (s.includes("lathe"))   return OP_TYPE_CONFIG.lathe;
+  if (s.includes("mill"))    return OP_TYPE_CONFIG.milling;
+  if (s.includes("drill"))   return OP_TYPE_CONFIG.drill;
+  if (s.includes("grind"))   return OP_TYPE_CONFIG.grinding;
+  if (s.includes("inspect")) return OP_TYPE_CONFIG.inspection;
   return OP_TYPE_CONFIG.default;
 }
 
-function Dashboard() {
-  const [baseline, setBaseline] = useState<ApiResponse | null>(null);
-  const [replanned, setReplanned] = useState<ApiResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+function formatCurrency(v?: number) {
+  return `₹${Number(v || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+}
+
+function formatTime(v: string) {
+  if (!v) return "—";
+  return new Date(v).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function formatDate(v: string) {
+  if (!v) return "—";
+  return new Date(v).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+// ─── sub-components ────────────────────────────────────────────────────────
+
+function KPICard({ label, value, meta, metaColor }: { label: string; value: string; meta: string; metaColor?: string }) {
+  return (
+    <div style={{
+      background: "#fff",
+      border: "1px solid #e5e7eb",
+      borderRadius: 2,
+      padding: "24px 28px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 0,
+    }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.14em", marginBottom: 14 }}>{label}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: "#0a0a0a", letterSpacing: "-0.04em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      <div style={{ fontSize: 11, color: metaColor ?? "#9ca3af", marginTop: 8, fontWeight: metaColor ? 600 : 400 }}>{meta}</div>
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: 9, fontWeight: 800, color: "#9ca3af", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 12 }}>
+      {children}
+    </div>
+  );
+}
+
+// ─── main ──────────────────────────────────────────────────────────────────
+
+export default function Dashboard() {
+  const [baseline,   setBaseline]   = useState<ApiResponse | null>(null);
+  const [replanned,  setReplanned]  = useState<ApiResponse | null>(null);
+  const [loading,    setLoading]    = useState(true);
   const [replanning, setReplanning] = useState(false);
-  const [error, setError] = useState("");
+  const [error,      setError]      = useState("");
 
   const loadBaseline = async () => {
     try {
-      setLoading(true);
-      setError("");
-      const response = await fetch(`${API_BASE}/baseline`);
-      if (!response.ok) throw new Error(`Baseline request failed: ${response.status}`);
-      const data = await response.json();
-      setBaseline(data);
-    } catch (err) {
-      console.error(err);
-      setError("Unable to connect to the scheduling engine.");
-    } finally {
-      setLoading(false);
-    }
+      setLoading(true); setError("");
+      const r = await fetch(`${API_BASE}/baseline`);
+      if (!r.ok) throw new Error(`${r.status}`);
+      setBaseline(await r.json());
+    } catch { setError("Cannot reach scheduling engine."); }
+    finally { setLoading(false); }
   };
 
   const runReplanning = async () => {
     try {
-      setReplanning(true);
-      setError("");
-      const response = await fetch(`${API_BASE}/replan`, {
+      setReplanning(true); setError("");
+      const r = await fetch(`${API_BASE}/replan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(defaultScenario),
       });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Replanning failed: ${response.status} ${text}`);
-      }
-      const data = await response.json();
-      setReplanned(data);
-    } catch (err) {
-      console.error(err);
-      setError("Replanning failed. Check that the FastAPI server is running.");
-    } finally {
-      setReplanning(false);
-    }
+      if (!r.ok) throw new Error(`${r.status}`);
+      setReplanned(await r.json());
+    } catch { setError("Replanning failed — is FastAPI running?"); }
+    finally { setReplanning(false); }
   };
 
   useEffect(() => { loadBaseline(); }, []);
 
-  const activeSchedule = replanned?.schedule || baseline?.schedule || [];
+  const activeSchedule = replanned?.schedule ?? baseline?.schedule ?? [];
 
   const machines = useMemo(() => {
-    const map = new Map<string, ScheduleOperation[]>();
+    const m = new Map<string, ScheduleOperation[]>();
     activeSchedule.forEach((op) => {
-      if (!map.has(op.machine_id)) map.set(op.machine_id, []);
-      map.get(op.machine_id)!.push(op);
+      if (!m.has(op.machine_id)) m.set(op.machine_id, []);
+      m.get(op.machine_id)!.push(op);
     });
-    return Array.from(map.entries());
+    return Array.from(m.entries());
   }, [activeSchedule]);
 
-  const affectedOperations = useMemo(() => {
+  const affectedOps = useMemo(() => {
     if (!baseline?.schedule || !replanned?.schedule) return 0;
-    const baselineMap = new Map(
-      baseline.schedule.map((op) => [`${op.order_id}-${op.op_seq}`, op])
-    );
-    return replanned.schedule.filter((op) => {
-      const original = baselineMap.get(`${op.order_id}-${op.op_seq}`);
-      if (!original) return false;
-      return (
-        original.machine_id !== op.machine_id ||
-        original.operator_id !== op.operator_id ||
-        original.start_time !== op.start_time
-      );
+    const bmap = new Map(baseline.schedule.map((o) => [`${o.order_id}-${o.op_seq}`, o]));
+    return replanned.schedule.filter((o) => {
+      const orig = bmap.get(`${o.order_id}-${o.op_seq}`);
+      return orig && (orig.machine_id !== o.machine_id || orig.start_time !== o.start_time);
     }).length;
   }, [baseline, replanned]);
 
   const grinderViolations = useMemo(() => {
-    const breakdownStart = new Date("2026-08-25T11:00:00Z").getTime();
-    const breakdownEnd = new Date("2026-08-25T19:00:00Z").getTime();
-    return activeSchedule.filter((op) => {
-      if (op.machine_id !== "GRINDER-01") return false;
-      const start = new Date(op.start_time).getTime();
-      const end = new Date(op.end_time).getTime();
-      return start < breakdownEnd && end > breakdownStart;
+    const bs = new Date("2026-08-25T11:00:00Z").getTime();
+    const be = new Date("2026-08-25T19:00:00Z").getTime();
+    return activeSchedule.filter((o) => {
+      if (o.machine_id !== "GRINDER-01") return false;
+      const s = new Date(o.start_time).getTime();
+      const e = new Date(o.end_time).getTime();
+      return s < be && e > bs;
     }).length;
   }, [activeSchedule]);
 
-  const totalOperations = baseline?.operations_count || activeSchedule.length || 0;
-  const baselineCost = baseline?.cost_breakdown?.baseline?.total_cost ?? baseline?.cost ?? 0;
-  const replannedCost = replanned?.cost_breakdown?.replanned?.total_cost ?? replanned?.cost ?? 0;
+  const totalOps       = baseline?.operations_count ?? activeSchedule.length;
+  const baselineCost   = baseline?.cost_breakdown?.baseline?.total_cost ?? baseline?.cost ?? 0;
+  const replannedCost  = replanned?.cost_breakdown?.replanned?.total_cost ?? replanned?.cost ?? 0;
   const incrementalCost = replanned?.cost_breakdown?.delta?.incremental_cost ?? replannedCost - baselineCost;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8f9fb", color: "#111827", fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif", fontSize: 14 }}>
+    <>
       <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-        .shell { display: flex; min-height: 100vh; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* SIDEBAR */
-        .sidebar {
-          width: 220px;
-          flex-shrink: 0;
-          background: #fff;
-          border-right: 1px solid #e5e7eb;
-          display: flex;
-          flex-direction: column;
-        }
+        body { background: #fafafa; }
 
-        .brand {
-          padding: 20px 18px 18px;
-          border-bottom: 1px solid #e5e7eb;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
+        /* scrollbar */
+        .db-schedule-body::-webkit-scrollbar { width: 4px; }
+        .db-schedule-body::-webkit-scrollbar-track { background: transparent; }
+        .db-schedule-body::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
 
-        .brand-mark {
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
-          background: #111827;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: .5px;
-          flex-shrink: 0;
-        }
+        /* op row hover */
+        .db-op-row:hover { background: #f9fafb; }
 
-        .brand-name {
-          font-size: 13px;
-          font-weight: 700;
-          color: #111827;
-          line-height: 1.2;
-        }
+        /* run btn */
+        .db-run:hover:not(:disabled) { background: #1f2937 !important; }
+        .db-run:disabled { opacity: 0.4; cursor: wait; }
 
-        .brand-sub {
-          font-size: 10px;
-          color: #9ca3af;
-          margin-top: 2px;
-          letter-spacing: .3px;
-        }
+        /* refresh */
+        .db-refresh:hover:not(:disabled) { background: #f9fafb !important; }
+        .db-refresh:disabled { opacity: 0.5; cursor: wait; }
 
-        .nav-section {
-          padding: 20px 12px 6px;
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 1px;
-          color: #9ca3af;
-        }
-
-        .nav { padding: 0 8px; }
-
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          height: 40px;
-          padding: 0 10px;
-          border-radius: 8px;
-          font-size: 13px;
-          color: #6b7280;
-          cursor: pointer;
-          margin-bottom: 2px;
-        }
-
-        .nav-item:hover { background: #f3f4f6; color: #111827; }
-
-        .nav-item.active {
-          background: #f0f9ff;
-          color: #0369a1;
-          font-weight: 600;
-        }
-
-        .nav-icon {
-          width: 28px;
-          height: 28px;
-          border-radius: 6px;
-          background: #f3f4f6;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 9px;
-          font-weight: 700;
-          letter-spacing: .3px;
-        }
-
-        .nav-item.active .nav-icon {
-          background: #e0f2fe;
-          color: #0369a1;
-        }
-
-        .sidebar-footer {
-          margin-top: auto;
-          padding: 16px;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        .engine-pill {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 11px;
-          color: #6b7280;
-        }
-
-        .engine-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #22c55e;
-          flex-shrink: 0;
-          box-shadow: 0 0 0 3px rgba(34,197,94,.15);
-        }
-
-        .version-tag {
-          margin-top: 8px;
-          font-size: 10px;
-          color: #d1d5db;
-        }
-
-        /* MAIN */
-        .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-
-        .topbar {
-          height: 60px;
-          background: #fff;
-          border-bottom: 1px solid #e5e7eb;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 28px;
-          flex-shrink: 0;
-        }
-
-        .breadcrumb { font-size: 12px; color: #9ca3af; display: flex; align-items: center; gap: 6px; }
-        .breadcrumb .sep { color: #d1d5db; }
-        .breadcrumb .active { color: #374151; font-weight: 500; }
-
-        .topbar-right { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #22c55e; font-weight: 500; }
-        .topbar-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; }
-
-        .content { padding: 28px; flex: 1; overflow-y: auto; }
-
-        /* PAGE HEADER */
-        .page-header {
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          margin-bottom: 24px;
-        }
-
-        .eyebrow { font-size: 11px; color: #9ca3af; font-weight: 600; letter-spacing: .8px; margin-bottom: 6px; }
-        .page-title { font-size: 24px; font-weight: 700; color: #111827; letter-spacing: -.5px; }
-        .page-desc { font-size: 13px; color: #9ca3af; margin-top: 4px; }
-
-        .refresh-btn {
-          height: 36px;
-          padding: 0 16px;
-          background: #fff;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 600;
-          color: #374151;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .refresh-btn:hover { background: #f9fafb; }
-        .refresh-btn:disabled { opacity: .5; cursor: wait; }
-
-        /* ERROR */
-        .error-bar {
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-          color: #b91c1c;
-          padding: 12px 16px;
-          border-radius: 8px;
-          font-size: 13px;
-          margin-bottom: 20px;
-        }
-
-        /* KPI */
-        .kpi-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .kpi {
-          background: #fff;
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          padding: 20px;
-        }
-
-        .kpi-label { font-size: 11px; font-weight: 600; color: #9ca3af; letter-spacing: .5px; margin-bottom: 12px; }
-        .kpi-value { font-size: 26px; font-weight: 700; color: #111827; letter-spacing: -1px; }
-        .kpi-meta { font-size: 11px; color: #9ca3af; margin-top: 6px; }
-        .kpi-good { color: #22c55e !important; }
-        .kpi-warn { color: #f59e0b !important; }
-
-        /* MAIN GRID */
-        .main-grid {
-          display: grid;
-          grid-template-columns: 1fr 340px;
-          gap: 16px;
-          align-items: start;
-          margin-bottom: 16px;
-        }
-
-        /* PANEL */
-        .panel {
-          background: #fff;
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          overflow: hidden;
-        }
-
-        .panel-header {
-          padding: 16px 20px;
-          border-bottom: 1px solid #f3f4f6;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .panel-title { font-size: 14px; font-weight: 700; color: #111827; }
-        .panel-sub { font-size: 12px; color: #9ca3af; margin-top: 2px; }
-
-        .panel-badge {
-          background: #f3f4f6;
-          color: #374151;
-          font-size: 11px;
-          font-weight: 600;
-          padding: 4px 10px;
-          border-radius: 20px;
-        }
-
-        /* LEGEND */
-        .legend {
-          padding: 10px 20px;
-          border-bottom: 1px solid #f3f4f6;
-          display: flex;
-          gap: 14px;
-          flex-wrap: wrap;
-        }
-
-        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #6b7280; }
-
-        .legend-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 3px;
-          flex-shrink: 0;
-        }
-
-        /* SCHEDULE */
-        .schedule-body { max-height: 560px; overflow-y: auto; }
-
-        .machine-section { border-bottom: 1px solid #f3f4f6; }
-        .machine-section:last-child { border-bottom: 0; }
-
-        .machine-header {
-          padding: 10px 20px;
-          background: #f9fafb;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          font-size: 12px;
-          font-weight: 700;
-          color: #374151;
-          letter-spacing: .3px;
-          position: sticky;
-          top: 0;
-        }
-
-        .machine-ops-count {
-          font-size: 11px;
-          font-weight: 500;
-          color: #9ca3af;
-          background: #e5e7eb;
-          padding: 2px 8px;
-          border-radius: 10px;
-        }
-
-        .op-row {
-          display: grid;
-          grid-template-columns: 110px 1fr 90px 80px;
-          gap: 10px;
-          align-items: center;
-          padding: 10px 20px;
-          border-top: 1px solid #f3f4f6;
-        }
-
-        .op-row:hover { background: #fafafa; }
-
-        .op-id { font-size: 12px; font-weight: 600; color: #111827; }
-        .op-seq { font-size: 11px; color: #9ca3af; margin-top: 2px; }
-
-        .op-pill {
-          display: inline-flex;
-          align-items: center;
-          padding: 4px 10px;
-          border-radius: 6px;
-          font-size: 11px;
-          font-weight: 600;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 100%;
-        }
-
-        .op-operator { font-size: 11px; color: #6b7280; }
-
-        .op-time { font-size: 11px; color: #6b7280; text-align: right; white-space: nowrap; }
-
-        /* SCENARIO */
-        .scenario { position: sticky; top: 20px; }
-
-        .scenario-label { font-size: 10px; font-weight: 600; color: #9ca3af; letter-spacing: .6px; margin-bottom: 6px; }
-
-        .scenario-title { font-size: 16px; font-weight: 700; color: #111827; }
-
-        .scenario-id { font-size: 11px; color: #d1d5db; margin-top: 4px; }
-
-        .ctx-grid {
-          display: grid;
-          grid-template-columns: 1fr 60px 55px;
-          border-top: 1px solid #f3f4f6;
-        }
-
-        .ctx-cell {
-          padding: 14px 16px;
-          border-right: 1px solid #f3f4f6;
-        }
-
-        .ctx-cell:last-child { border-right: 0; }
-        .ctx-label { font-size: 10px; color: #9ca3af; font-weight: 600; margin-bottom: 6px; }
-        .ctx-value { font-size: 12px; color: #374151; font-weight: 600; }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          border-top: 1px solid #f3f4f6;
-        }
-
-        .stat-cell { padding: 14px 16px; border-right: 1px solid #f3f4f6; }
-        .stat-cell:last-child { border-right: 0; }
-        .stat-num { font-size: 20px; font-weight: 700; color: #111827; }
-        .stat-label { font-size: 10px; color: #9ca3af; margin-top: 4px; font-weight: 600; }
-
-        .events-section { padding: 16px 16px 0; }
-        .events-heading { font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 10px; display: flex; justify-content: space-between; }
-
-        .event-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 12px 0;
-          border-top: 1px solid #f3f4f6;
-        }
-
-        .event-num {
-          width: 26px;
-          height: 26px;
-          border-radius: 6px;
-          background: #f3f4f6;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 10px;
-          font-weight: 700;
-          color: #374151;
-          flex-shrink: 0;
-        }
-
-        .event-main { flex: 1; min-width: 0; }
-        .event-type { font-size: 12px; font-weight: 600; color: #111827; }
-        .event-target { font-size: 11px; color: #9ca3af; margin-top: 2px; }
-        .event-time { font-size: 10px; color: #9ca3af; text-align: right; }
-
-        .warning-box {
-          margin: 14px 16px;
-          padding: 12px 14px;
-          border: 1px solid #fef08a;
-          background: #fefce8;
-          border-radius: 8px;
-          display: flex;
-          gap: 10px;
-          align-items: flex-start;
-        }
-
-        .warning-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-        .warning-title { font-size: 12px; font-weight: 600; color: #713f12; }
-        .warning-text { font-size: 11px; color: #92400e; margin-top: 3px; line-height: 1.5; }
-
-        .actions {
-          padding: 14px 16px 16px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .ready-badge {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #6b7280;
-        }
-
-        .ready-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
-
-        .run-btn {
-          height: 38px;
-          padding: 0 18px;
-          background: #111827;
-          color: #fff;
-          border: 0;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          letter-spacing: .3px;
-        }
-
-        .run-btn:hover { background: #1f2937; }
-        .run-btn:disabled { opacity: .45; cursor: wait; }
-
-        /* RESULT / VALIDATION */
-        .section-panel { margin-bottom: 16px; }
-
-        .result-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          border-top: 1px solid #f3f4f6;
-        }
-
-        .result-cell { padding: 18px 20px; border-right: 1px solid #f3f4f6; }
-        .result-cell:last-child { border-right: 0; }
-        .result-label { font-size: 11px; font-weight: 600; color: #9ca3af; margin-bottom: 8px; }
-        .result-value { font-size: 18px; font-weight: 700; color: #111827; }
-        .result-positive { color: #16a34a !important; }
-        .result-negative { color: #dc2626 !important; }
-
-        /* LOADING */
-        .loading-state {
-          padding: 60px 20px;
-          text-align: center;
-          color: #9ca3af;
-          font-size: 13px;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 1100px) {
-          .main-grid { grid-template-columns: 1fr; }
-          .scenario { position: static; }
-          .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        @media (max-width: 760px) {
-          .sidebar { display: none; }
-          .content { padding: 16px; }
-          .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-          .result-grid { grid-template-columns: repeat(2, 1fr); }
-          .op-row { grid-template-columns: 90px 1fr 70px; }
-          .op-operator { display: none; }
-        }
+        /* machine row */
+        .db-machine-row:hover { background: #f9fafb; }
       `}</style>
 
-      <div className="shell">
+      <div style={{ display: "flex", minHeight: "100vh", background: "#fafafa", fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif" }}>
 
-       <Sidebar/>
+        {/* ── Sidebar ── */}
+        <Sidebar />
 
-        {/* MAIN */}
-        <main className="main">
+        {/* ── Main (offset for fixed sidebar) ── */}
+        <div style={{ marginLeft: 238, flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
 
-          {/* TOPBAR */}
-          <header className="topbar">
-            <div className="breadcrumb">
-              <span>Control Room</span>
-              <span className="sep">/</span>
-              <span className="active">Operations</span>
+          {/* Topbar */}
+          <header style={{
+            height: 56,
+            background: "#fff",
+            borderBottom: "1px solid #e5e7eb",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 36px",
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            flexShrink: 0,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#9ca3af", letterSpacing: "0.04em" }}>
+              <span style={{ fontWeight: 700, letterSpacing: "0.12em", fontSize: 9, color: "#d1d5db" }}>CONTROL ROOM</span>
+              <span style={{ color: "#e5e7eb" }}>/</span>
+              <span style={{ color: "#111827", fontWeight: 600, fontSize: 11 }}>Operations</span>
             </div>
-           
-          </header>
-
-          {/* CONTENT */}
-          <div className="content">
-
-            {/* PAGE HEADER */}
-            <div className="page-header">
-              <div>
-                <div className="eyebrow">MACHINE SHOP SCHEDULER</div>
-                <h1 className="page-title">Operations Dashboard</h1>
-                <div className="page-desc">Production scheduling, constraints and live replanning</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 600, color: "#16a34a" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,0.15)", display: "inline-block" }} />
+                Engine online
               </div>
-              <button className="refresh-btn" onClick={loadBaseline} disabled={loading}>
-                {loading ? "Loading…" : "↺ Refresh"}
+              <button
+                className="db-refresh"
+                onClick={loadBaseline}
+                disabled={loading}
+                style={{
+                  height: 32, padding: "0 14px", background: "#fff", border: "1px solid #e5e7eb",
+                  borderRadius: 2, fontSize: 11, fontWeight: 700, color: "#374151", cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 6, letterSpacing: "0.04em",
+                }}
+              >
+                {loading ? "LOADING" : "↺ REFRESH"}
               </button>
             </div>
+          </header>
 
-            {/* ERROR */}
-            {error && <div className="error-bar">⚠ {error}</div>}
+          {/* Page title row */}
+          <div style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "32px 36px 28px" }}>
+            <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.18em", color: "#9ca3af", marginBottom: 8 }}>
+              MACHINE SHOP SCHEDULER
+            </div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, color: "#0a0a0a", letterSpacing: "-0.04em", lineHeight: 1 }}>
+              Operations
+            </h1>
+            <p style={{ marginTop: 8, fontSize: 13, color: "#9ca3af", lineHeight: 1.5 }}>
+              Live schedule, scenario evaluation, and constraint validation.
+            </p>
+          </div>
 
-            {/* LOADING */}
+          {/* Content */}
+          <div style={{ padding: "28px 36px 48px", flex: 1 }}>
+
+            {/* Error */}
+            {error && (
+              <div style={{
+                background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c",
+                padding: "12px 16px", borderRadius: 2, fontSize: 12, marginBottom: 20,
+                display: "flex", alignItems: "center", gap: 8, fontWeight: 500,
+              }}>
+                <span style={{ fontSize: 14 }}>⚠</span> {error}
+              </div>
+            )}
+
+            {/* KPI row */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, background: "#e5e7eb", border: "1px solid #e5e7eb", borderRadius: 2, overflow: "hidden", marginBottom: 24 }}>
+              <KPICard label="SCHEDULED OPS"    value={String(totalOps)} meta="validated production ops" />
+              <KPICard label="BASELINE COST"    value={formatCurrency(baselineCost)} meta="EDD dispatcher" metaColor="#16a34a" />
+              <KPICard label="AFFECTED OPS"     value={replanned ? String(affectedOps) : "—"} meta="moved by active scenario" />
+              <KPICard
+                label="INCREMENTAL COST"
+                value={replanned ? formatCurrency(incrementalCost) : "—"}
+                meta="replanning impact"
+                metaColor={replanned ? (incrementalCost > 0 ? "#d97706" : "#16a34a") : undefined}
+              />
+            </div>
+
+            {/* Loading */}
             {loading && !baseline ? (
-              <div className="panel">
-                <div className="loading-state">Loading scheduling engine…</div>
+              <div style={{
+                background: "#fff", border: "1px solid #e5e7eb", borderRadius: 2,
+                padding: "80px 20px", textAlign: "center", color: "#9ca3af", fontSize: 13,
+              }}>
+                Loading scheduling engine…
               </div>
             ) : (
               <>
-                {/* KPI CARDS */}
-                <div className="kpi-grid">
-                  <div className="kpi">
-                    <div className="kpi-label">SCHEDULED OPERATIONS</div>
-                    <div className="kpi-value">{totalOperations}</div>
-                    <div className="kpi-meta">validated production ops</div>
-                  </div>
+                {/* Main two-col grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 16, marginBottom: 16, alignItems: "start" }}>
 
-                  <div className="kpi">
-                    <div className="kpi-label">BASELINE COST</div>
-                    <div className="kpi-value">{formatCurrency(baselineCost)}</div>
-                    <div className="kpi-meta kpi-good">EDD dispatcher</div>
-                  </div>
+                  {/* ── Production timeline ── */}
+                  <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 2, overflow: "hidden" }}>
 
-                  <div className="kpi">
-                    <div className="kpi-label">AFFECTED OPERATIONS</div>
-                    <div className="kpi-value">{replanned ? affectedOperations : 0}</div>
-                    <div className="kpi-meta">moved by active scenario</div>
-                  </div>
-
-                  <div className="kpi">
-                    <div className="kpi-label">INCREMENTAL COST</div>
-                    <div className={`kpi-value ${replanned ? (incrementalCost > 0 ? "kpi-warn" : "kpi-good") : ""}`}>
-                      {replanned ? formatCurrency(incrementalCost) : "—"}
-                    </div>
-                    <div className="kpi-meta">replanning impact</div>
-                  </div>
-                </div>
-
-                {/* MAIN GRID */}
-                <div className="main-grid">
-
-                  {/* SCHEDULE PANEL */}
-                  <div className="panel">
-                    <div className="panel-header">
+                    {/* Panel header */}
+                    <div style={{ padding: "16px 24px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div>
-                        <div className="panel-title">Production Timeline</div>
-                        <div className="panel-sub">{replanned ? "Replanned schedule" : "Baseline schedule"}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#0a0a0a" }}>Production Timeline</div>
+                        <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{replanned ? "Replanned schedule" : "Baseline schedule"}</div>
                       </div>
-                      <span className="panel-badge">{activeSchedule.length} ops</span>
+                      <div style={{ background: "#f3f4f6", color: "#374151", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, letterSpacing: "0.04em" }}>
+                        {activeSchedule.length} OPS
+                      </div>
                     </div>
 
-                    {/* LEGEND */}
-                    <div className="legend">
-                      {Object.entries(OP_TYPE_CONFIG)
-                        .filter(([k]) => k !== "default")
-                        .map(([key, cfg]) => (
-                          <div className="legend-item" key={key}>
-                            <span className="legend-dot" style={{ background: cfg.bg, border: `1.5px solid ${cfg.color}33` }} />
-                            <span style={{ color: cfg.color, fontWeight: 600 }}>{cfg.label}</span>
-                          </div>
-                        ))}
+                    {/* Legend */}
+                    <div style={{ padding: "10px 24px", borderBottom: "1px solid #f3f4f6", display: "flex", gap: 16, flexWrap: "wrap" }}>
+                      {Object.entries(OP_TYPE_CONFIG).filter(([k]) => k !== "default").map(([key, cfg]) => (
+                        <div key={key} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 700, color: cfg.color, letterSpacing: "0.06em" }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 2, background: cfg.bg, border: `1.5px solid ${cfg.border}`, display: "inline-block", flexShrink: 0 }} />
+                          {cfg.label.toUpperCase()}
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="schedule-body">
+                    {/* Schedule rows */}
+                    <div className="db-schedule-body" style={{ maxHeight: 520, overflowY: "auto" }}>
                       {machines.length === 0 ? (
-                        <div className="loading-state">No operations to display</div>
-                      ) : (
-                        machines.map(([machineId, ops]) => (
-                          <div className="machine-section" key={machineId}>
-                            <div className="machine-header">
-                              <span>{machineId}</span>
-                              <span className="machine-ops-count">{ops.length} ops</span>
-                            </div>
-
-                            {ops.slice(0, 30).map((op) => {
-                              const cfg = getOpType(op.operation_type);
-                              return (
-                                <div className="op-row" key={`${op.order_id}-${op.op_seq}`}>
-                                  <div>
-                                    <div className="op-id">{op.order_id}</div>
-                                    <div className="op-seq">OP {op.op_seq} · {op.operation_type}</div>
-                                  </div>
-
-                                  <div>
-                                    <span
-                                      className="op-pill"
-                                      style={{ background: cfg.bg, color: cfg.color }}
-                                    >
-                                      {op.operation_type}
-                                    </span>
-                                  </div>
-
-                                  <div className="op-operator">{op.operator_id}</div>
-
-                                  <div className="op-time">
-                                    {formatTime(op.start_time)}<br />
-                                    <span style={{ color: "#d1d5db" }}>–</span> {formatTime(op.end_time)}
-                                  </div>
-                                </div>
-                              );
-                            })}
+                        <div style={{ padding: "60px 24px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
+                          No operations to display
+                        </div>
+                      ) : machines.map(([machineId, ops]) => (
+                        <div key={machineId} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                          {/* Machine header */}
+                          <div style={{
+                            padding: "8px 24px", background: "#f9fafb",
+                            display: "flex", alignItems: "center", justifyContent: "space-between",
+                            position: "sticky", top: 0,
+                          }}>
+                            <span style={{ fontSize: 10, fontWeight: 800, color: "#374151", letterSpacing: "0.12em", fontFamily: "monospace" }}>{machineId}</span>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "#9ca3af", background: "#e5e7eb", padding: "2px 8px", borderRadius: 10 }}>{ops.length} ops</span>
                           </div>
-                        ))
-                      )}
+                          {/* Ops */}
+                          {ops.slice(0, 30).map((op) => {
+                            const cfg = getOpType(op.operation_type);
+                            return (
+                              <div
+                                key={`${op.order_id}-${op.op_seq}`}
+                                className="db-op-row"
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "120px 1fr 100px 80px",
+                                  gap: 12,
+                                  alignItems: "center",
+                                  padding: "10px 24px",
+                                  borderTop: "1px solid #f3f4f6",
+                                  cursor: "default",
+                                }}
+                              >
+                                <div>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: "#0a0a0a", fontFamily: "monospace" }}>{op.order_id}</div>
+                                  <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 2 }}>OP {op.op_seq}</div>
+                                </div>
+                                <div>
+                                  <span style={{
+                                    display: "inline-flex", alignItems: "center",
+                                    padding: "3px 10px", borderRadius: 2,
+                                    fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
+                                    background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`,
+                                  }}>
+                                    {op.operation_type.toUpperCase()}
+                                  </span>
+                                </div>
+                                <div style={{ fontSize: 10, color: "#6b7280", fontFamily: "monospace" }}>{op.operator_id}</div>
+                                <div style={{ fontSize: 10, color: "#6b7280", textAlign: "right", fontFamily: "monospace", lineHeight: 1.6 }}>
+                                  {formatTime(op.start_time)}<br />
+                                  <span style={{ color: "#d1d5db" }}>↓</span> {formatTime(op.end_time)}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* SCENARIO PANEL */}
-                  <div className="panel scenario">
-                    <div className="panel-header" style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
-                      <div className="scenario-label">SCENARIO CONFIGURATION</div>
-                      <div className="scenario-title">Active Scenario</div>
-                      <div className="scenario-id">grinder-failure-operator-absence</div>
+                  {/* ── Scenario panel ── */}
+                  <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 2, overflow: "hidden", position: "sticky", top: 76 }}>
+
+                    {/* Header */}
+                    <div style={{ padding: "16px 20px", borderBottom: "1px solid #f3f4f6" }}>
+                      <div style={{ fontSize: 9, fontWeight: 800, color: "#9ca3af", letterSpacing: "0.18em", marginBottom: 6 }}>ACTIVE SCENARIO</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#0a0a0a", lineHeight: 1.3 }}>Grinder Failure +<br />Operator Absence</div>
+                      <div style={{ fontSize: 9, color: "#d1d5db", marginTop: 5, fontFamily: "monospace", letterSpacing: "0.06em" }}>grinder-failure-operator-absence</div>
                     </div>
 
-                    <div className="ctx-grid">
-                      <div className="ctx-cell">
-                        <div className="ctx-label">CURRENT TIME</div>
-                        <div className="ctx-value">
-                          {formatDate(defaultScenario.context.current_time)}<br />
-                          <span style={{ color: "#9ca3af", fontWeight: 400 }}>{formatTime(defaultScenario.context.current_time)}</span>
-                        </div>
-                      </div>
-                      <div className="ctx-cell">
-                        <div className="ctx-label">SHIFT</div>
-                        <div className="ctx-value">A</div>
-                      </div>
-                      <div className="ctx-cell">
-                        <div className="ctx-label">EVENTS</div>
-                        <div className="ctx-value">2</div>
-                      </div>
-                    </div>
-
-                    <div className="stats-grid">
-                      <div className="stat-cell">
-                        <div className="stat-num">1</div>
-                        <div className="stat-label">MACHINE</div>
-                      </div>
-                      <div className="stat-cell">
-                        <div className="stat-num">1</div>
-                        <div className="stat-label">OPERATOR</div>
-                      </div>
-                      <div className="stat-cell">
-                        <div className="stat-num">2</div>
-                        <div className="stat-label">TOTAL</div>
-                      </div>
-                    </div>
-
-                    <div className="events-section">
-                      <div className="events-heading">
-                        <span>EVENT QUEUE</span>
-                        <span style={{ background: "#f3f4f6", padding: "2px 8px", borderRadius: 10, fontSize: 11, color: "#374151" }}>02</span>
-                      </div>
-
-                      {(defaultScenario.events as ScenarioEvent[]).map((event, i) => (
-                        <div className="event-item" key={`${event.event_type}-${event.target_id}`}>
-                          <div className="event-num">{String(i + 1).padStart(2, "0")}</div>
-                          <div className="event-main">
-                            <div className="event-type">{event.event_type.replace("_", " ")}</div>
-                            <div className="event-target">{event.target_id}</div>
-                          </div>
-                          <div className="event-time">
-                            {formatDate(event.start_time || "")}<br />
-                            {formatTime(event.start_time || "")}
+                    {/* Context cells */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 48px 44px", borderBottom: "1px solid #f3f4f6" }}>
+                      {[
+                        { label: "CURRENT TIME", value: `${formatDate(defaultScenario.context.current_time)}\n${formatTime(defaultScenario.context.current_time)}` },
+                        { label: "SHIFT", value: "A" },
+                        { label: "EVENTS", value: "2" },
+                      ].map(({ label, value }, i, arr) => (
+                        <div key={label} style={{ padding: "12px 14px", borderRight: i < arr.length - 1 ? "1px solid #f3f4f6" : "none" }}>
+                          <div style={{ fontSize: 8, fontWeight: 800, color: "#9ca3af", letterSpacing: "0.14em", marginBottom: 5 }}>{label}</div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: "#374151", lineHeight: 1.5, whiteSpace: "pre-line", fontFamily: value.includes("\n") ? "inherit" : "inherit" }}>
+                            {value}
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    <div className="warning-box">
-                      <span className="warning-icon">⚠</span>
+                    {/* Stats */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", borderBottom: "1px solid #f3f4f6" }}>
+                      {[{ n: "1", l: "MACHINE" }, { n: "1", l: "OPERATOR" }, { n: "2", l: "TOTAL" }].map(({ n, l }, i, arr) => (
+                        <div key={l} style={{ padding: "14px 14px", borderRight: i < arr.length - 1 ? "1px solid #f3f4f6" : "none" }}>
+                          <div style={{ fontSize: 20, fontWeight: 800, color: "#0a0a0a", letterSpacing: "-0.04em", lineHeight: 1 }}>{n}</div>
+                          <div style={{ fontSize: 8, fontWeight: 700, color: "#9ca3af", marginTop: 4, letterSpacing: "0.12em" }}>{l}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Event queue */}
+                    <div style={{ padding: "14px 20px 0" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                        <span style={{ fontSize: 9, fontWeight: 800, color: "#374151", letterSpacing: "0.14em" }}>EVENT QUEUE</span>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: "#6b7280", background: "#f3f4f6", padding: "2px 8px", borderRadius: 10 }}>02</span>
+                      </div>
+                      {(defaultScenario.events as ScenarioEvent[]).map((ev, i) => (
+                        <div key={ev.event_type + ev.target_id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderTop: "1px solid #f3f4f6" }}>
+                          <div style={{
+                            width: 22, height: 22, borderRadius: 2, background: "#f3f4f6",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 8, fontWeight: 800, color: "#374151", flexShrink: 0, fontFamily: "monospace",
+                          }}>
+                            {String(i + 1).padStart(2, "0")}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: "#111827" }}>
+                              {ev.event_type.replace(/_/g, " ")}
+                            </div>
+                            <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 2, fontFamily: "monospace" }}>{ev.target_id}</div>
+                          </div>
+                          <div style={{ fontSize: 9, color: "#9ca3af", textAlign: "right", flexShrink: 0 }}>
+                            {formatDate(ev.start_time || "")}<br />
+                            {formatTime(ev.start_time || "")}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Warning */}
+                    <div style={{ margin: "12px 16px", padding: "10px 12px", border: "1px solid #fde68a", background: "#fffbeb", borderRadius: 2, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <span style={{ fontSize: 12, flexShrink: 0, marginTop: 1 }}>⚠</span>
                       <div>
-                        <div className="warning-title">Schedule will be modified</div>
-                        <div className="warning-text">
-                          Completed operations remain locked. Unaffected future ops are preserved where possible.
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e" }}>Schedule will be modified</div>
+                        <div style={{ fontSize: 10, color: "#b45309", marginTop: 2, lineHeight: 1.5 }}>
+                          Locked ops stay fixed. Future ops preserved where possible.
                         </div>
                       </div>
                     </div>
 
-                    <div className="actions">
-                      <div className="ready-badge">
-                        <span className="ready-dot" />
-                        {replanned ? "Replan complete" : "Ready to optimize"}
+                    {/* Actions */}
+                    <div style={{ padding: "12px 16px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, color: "#6b7280", letterSpacing: "0.06em" }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,0.15)", display: "inline-block" }} />
+                        {replanned ? "REPLAN COMPLETE" : "READY"}
                       </div>
-                      <button className="run-btn" onClick={runReplanning} disabled={replanning}>
-                        {replanning ? "Optimizing…" : "Run Replanning →"}
+                      <button
+                        className="db-run"
+                        onClick={runReplanning}
+                        disabled={replanning}
+                        style={{
+                          height: 34, padding: "0 16px", background: "#0a0a0a", color: "#fff",
+                          border: "none", borderRadius: 2, fontSize: 10, fontWeight: 800,
+                          cursor: "pointer", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 6,
+                          transition: "background 140ms",
+                        }}
+                      >
+                        {replanning ? "OPTIMIZING…" : "RUN REPLANNING →"}
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* REPLANNING RESULT */}
+                {/* ── Replanning result ── */}
                 {replanned && (
-                  <div className="panel section-panel">
-                    <div className="panel-header">
+                  <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 2, overflow: "hidden", marginBottom: 16 }}>
+                    <div style={{ padding: "16px 24px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div>
-                        <div className="panel-title">Replanning Result</div>
-                        <div className="panel-sub">Scenario evaluation against baseline</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#0a0a0a" }}>Replanning Result</div>
+                        <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Scenario evaluation against baseline</div>
                       </div>
-                      <span className="panel-badge" style={{ background: "#dcfce7", color: "#15803d" }}>Complete</span>
+                      <span style={{ background: "#f0fdf4", color: "#15803d", fontSize: 10, fontWeight: 700, padding: "4px 12px", borderRadius: 20, border: "1px solid #bbf7d0", letterSpacing: "0.08em" }}>✓ COMPLETE</span>
                     </div>
-                    <div className="result-grid">
-                      <div className="result-cell">
-                        <div className="result-label">BASELINE</div>
-                        <div className="result-value">{formatCurrency(baselineCost)}</div>
-                      </div>
-                      <div className="result-cell">
-                        <div className="result-label">REPLANNED</div>
-                        <div className="result-value">{formatCurrency(replannedCost)}</div>
-                      </div>
-                      <div className="result-cell">
-                        <div className="result-label">STABILITY PENALTY</div>
-                        <div className="result-value">{formatCurrency(replanned.cost_breakdown?.replanned?.stability_penalty)}</div>
-                      </div>
-                      <div className="result-cell">
-                        <div className="result-label">INCREMENTAL COST</div>
-                        <div className={`result-value ${incrementalCost > 0 ? "result-negative" : "result-positive"}`}>
-                          {formatCurrency(incrementalCost)}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+                      {[
+                        { label: "BASELINE",          value: formatCurrency(baselineCost),    color: undefined },
+                        { label: "REPLANNED",         value: formatCurrency(replannedCost),   color: undefined },
+                        { label: "STABILITY PENALTY", value: formatCurrency(replanned.cost_breakdown?.replanned?.stability_penalty), color: undefined },
+                        { label: "INCREMENTAL COST",  value: formatCurrency(incrementalCost), color: incrementalCost > 0 ? "#dc2626" : "#16a34a" },
+                      ].map(({ label, value, color }, i, arr) => (
+                        <div key={label} style={{ padding: "20px 24px", borderRight: i < arr.length - 1 ? "1px solid #f3f4f6" : "none" }}>
+                          <div style={{ fontSize: 9, fontWeight: 800, color: "#9ca3af", letterSpacing: "0.14em", marginBottom: 8 }}>{label}</div>
+                          <div style={{ fontSize: 18, fontWeight: 800, color: color ?? "#0a0a0a", letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>{value}</div>
                         </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {/* CONSTRAINT STATUS */}
-                <div className="panel section-panel">
-                  <div className="panel-header">
+                {/* ── Constraint status ── */}
+                <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ padding: "16px 24px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <div className="panel-title">Constraint Status</div>
-                      <div className="panel-sub">Hard constraint validation</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0a0a0a" }}>Constraint Status</div>
+                      <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Hard constraint validation</div>
                     </div>
-                    <span
-                      className="panel-badge"
-                      style={grinderViolations === 0
-                        ? { background: "#dcfce7", color: "#15803d" }
-                        : { background: "#fee2e2", color: "#dc2626" }}
-                    >
-                      {grinderViolations === 0 ? "✓ Valid" : "⚠ Violation"}
+                    <span style={grinderViolations === 0
+                      ? { background: "#f0fdf4", color: "#15803d", fontSize: 10, fontWeight: 700, padding: "4px 12px", borderRadius: 20, border: "1px solid #bbf7d0", letterSpacing: "0.08em" }
+                      : { background: "#fef2f2", color: "#dc2626", fontSize: 10, fontWeight: 700, padding: "4px 12px", borderRadius: 20, border: "1px solid #fecaca", letterSpacing: "0.08em" }
+                    }>
+                      {grinderViolations === 0 ? "✓ VALID" : "⚠ VIOLATION"}
                     </span>
                   </div>
-                  <div className="result-grid">
-                    <div className="result-cell">
-                      <div className="result-label">TOTAL OPERATIONS</div>
-                      <div className="result-value">{activeSchedule.length}</div>
-                    </div>
-                    <div className="result-cell">
-                      <div className="result-label">DUPLICATE OPERATIONS</div>
-                      <div className="result-value result-positive">0</div>
-                    </div>
-                    <div className="result-cell">
-                      <div className="result-label">GRINDER VIOLATIONS</div>
-                      <div className={`result-value ${grinderViolations === 0 ? "result-positive" : "result-negative"}`}>
-                        {grinderViolations}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+                    {[
+                      { label: "TOTAL OPS",          value: String(activeSchedule.length),  color: undefined },
+                      { label: "DUPLICATES",         value: "0",                             color: "#16a34a" },
+                      { label: "GRINDER VIOLATIONS", value: String(grinderViolations),       color: grinderViolations === 0 ? "#16a34a" : "#dc2626" },
+                      { label: "OVERTIME OPS",       value: String(activeSchedule.filter((o) => o.is_overtime).length), color: undefined },
+                    ].map(({ label, value, color }, i, arr) => (
+                      <div key={label} style={{ padding: "20px 24px", borderRight: i < arr.length - 1 ? "1px solid #f3f4f6" : "none" }}>
+                        <div style={{ fontSize: 9, fontWeight: 800, color: "#9ca3af", letterSpacing: "0.14em", marginBottom: 8 }}>{label}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: color ?? "#0a0a0a", letterSpacing: "-0.03em" }}>{value}</div>
                       </div>
-                    </div>
-                    <div className="result-cell">
-                      <div className="result-label">OVERTIME OPERATIONS</div>
-                      <div className="result-value">
-                        {activeSchedule.filter((op) => op.is_overtime).length}
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
               </>
             )}
           </div>
-        </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
-
-export default Dashboard;

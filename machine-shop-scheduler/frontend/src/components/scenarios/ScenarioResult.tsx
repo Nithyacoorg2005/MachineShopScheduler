@@ -119,13 +119,17 @@ export default function ScenarioResult({
   const baselineCost = useMemo(() => {
     if (!costBreakdown?.baseline) return undefined;
     const b = costBreakdown.baseline;
-    return b.late_penalty + b.overtime_cost + b.changeover_cost;
+    // Use pre-computed total if available, otherwise sum components
+    return (b as any).total_cost
+      ?? (b.late_penalty + b.overtime_cost + b.changeover_cost);
   }, [costBreakdown]);
 
   const replannedCost = useMemo(() => {
     if (!costBreakdown?.replanned) return cost;
     const r = costBreakdown.replanned;
-    return r.late_penalty + r.overtime_cost + r.changeover_cost;
+    // stability_penalty is a scenario cost — must be included in replanned total
+    return (r as any).total_cost
+      ?? (r.late_penalty + r.overtime_cost + r.changeover_cost + ((r as any).stability_penalty ?? 0));
   }, [cost, costBreakdown]);
 
   const delta = costBreakdown?.delta;
@@ -162,7 +166,7 @@ export default function ScenarioResult({
         <div className="sr__hero">
           <div className="sr__hero-main">
             <span className="sr__hero-label">NEW TOTAL COST</span>
-            <strong className="sr__hero-value">{formatCurrency(cost)}</strong>
+            <strong className="sr__hero-value">{formatCurrency(replannedCost)}</strong>
             {delta && (
               <span className={`sr__hero-delta ${getDeltaClass(delta.incremental_cost)}`}>
                 {getDeltaPrefix(delta.incremental_cost)}
@@ -222,6 +226,12 @@ export default function ScenarioResult({
               baseline={costBreakdown?.baseline?.overtime_cost}
               replanned={costBreakdown?.replanned?.overtime_cost}
               delta={delta?.overtime_cost}
+            />
+            <CostRow
+              label="Stability penalty"
+              baseline={0}
+              replanned={(costBreakdown?.replanned as any)?.stability_penalty ?? 0}
+              delta={delta?.stability_penalty ?? 0}
             />
             <CostRow
               label="Changeover"

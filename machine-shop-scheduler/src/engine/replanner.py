@@ -221,24 +221,27 @@ class Replanner:
             ) not in affected_keys
         ]
 
-    def _add_downtime_constraints(
-        self,
-        optimizer,
-        scenario
-    ):
-        for event in scenario.get(
-            "events",
-            []
-        ):
-            if event.get(
-                "event_type"
-            ) == "MACHINE_BREAKDOWN":
+    def _add_downtime_constraints(self, optimizer, scenario):
+      for event in scenario.get("events", []):
+        if event.get("event_type") == "MACHINE_BREAKDOWN":
+            duration_hours = event.get("duration_hours")
 
-                optimizer.set_downtime(
-                    event["target_id"],
-                    event["start_time"],
-                    event["duration_hours"]
-                )
+            # Compute from start/end if duration_hours not provided
+            if duration_hours is None:
+                start_time = event.get("start_time")
+                end_time = event.get("end_time")
+                if start_time and end_time:
+                    start = self._parse_time(start_time)
+                    end = self._parse_time(end_time)
+                    duration_hours = (end - start).total_seconds() / 3600
+                else:
+                    duration_hours = 0
+
+            optimizer.set_downtime(
+                event["target_id"],
+                event["start_time"],
+                duration_hours
+            )
 
     def apply_scenario(
         self,

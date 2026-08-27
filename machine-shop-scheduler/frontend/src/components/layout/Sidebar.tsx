@@ -22,11 +22,7 @@ const items: SidebarItem[] = [
     short: "SI",
     path: "/scenarios",
   },
-  {
-    label: "Machines",
-    short: "MC",
-    path: "/machines",
-  },
+
 ];
 
 export default function Sidebar() {
