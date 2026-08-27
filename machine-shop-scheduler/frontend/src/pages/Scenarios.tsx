@@ -50,30 +50,31 @@ const SCENARIOS = [
       },
     ],
   },
-  {
-    id: "multi-machine-maintenance",
-    name: "Multi-Machine Maintenance Window",
-    description:
-      "Scheduled preventive maintenance across MILL-01 and DRILL-02 simultaneously. Evaluates schedule feasibility with two machines offline for an extended window.",
-    currentTime: "2026-08-27T06:00:00Z",
-    activeShift: "A",
-    events: [
-      {
-        event_type: "MACHINE_BREAKDOWN",
-        target_id: "MILL-01",
-        start_time: "2026-08-27T06:00:00Z",
-        duration_hours: 6,
-        impact: "Medium — milling queue delayed",
-      },
-      {
-        event_type: "MACHINE_BREAKDOWN",
-        target_id: "DRILL-02",
-        start_time: "2026-08-27T06:00:00Z",
-        duration_hours: 6,
-        impact: "Medium — drill ops rerouted",
-      },
-    ],
-  },
+  // ✅ With this:
+{
+  id: "multi-machine-maintenance",
+  name: "Multi-Machine Maintenance Window",
+  description:
+    "Scheduled preventive maintenance across GRINDER-01 and DRILL-01 simultaneously. Evaluates schedule feasibility with two high-load machines offline for an extended window.",
+  currentTime: "2026-08-25T06:00:00Z",
+  activeShift: "A",
+  events: [
+    {
+      event_type: "MACHINE_BREAKDOWN",
+      target_id: "GRINDER-01",
+      start_time: "2026-08-25T08:00:00Z",
+      duration_hours: 8,
+      impact: "High — 14 grinding ops affected",
+    },
+    {
+      event_type: "MACHINE_BREAKDOWN",
+      target_id: "DRILL-01",
+      start_time: "2026-08-25T08:00:00Z",
+      duration_hours: 8,
+      impact: "Medium — drill queue rerouted",
+    },
+  ],
+},
 ];
 
 type RunResult = Omit<ScenarioResultProps, "onBack" | "onViewSchedule" | "onRunAgain">;
@@ -122,13 +123,24 @@ export default function Scenarios() {
 
       const data = await res.json();
 
-      setResult({
-        status: data.status ?? "success",
-        operationsCount: data.operations_count ?? 0,
-        cost: data.cost ?? 0,
-        costBreakdown: data.cost_breakdown,
-        diff: data.diff,
-      });
+      // ✅ Fix — extract summary fields into the shape ScenarioResult expects:
+const diffSummary = data.diff?.summary;
+
+setResult({
+  status: data.status ?? "success",
+  operationsCount: data.operations_count ?? 0,
+  cost: data.cost ?? 0,
+  costBreakdown: {
+    ...data.cost_breakdown,
+    impact: {
+      affected_operations:          diffSummary?.changed_operations         ?? 0,
+      moved_operations:             diffSummary?.machine_changes            ?? 0,
+      total_completion_delay_hours: (diffSummary?.total_completion_delay_minutes ?? 0) / 60,
+      max_completion_delay_hours:   (diffSummary?.total_completion_delay_minutes ?? 0) / 60,
+    },
+  },
+  diff: data.diff,
+});
     } catch (err) {
       console.error(err);
       setError("Replanning failed. Check that the FastAPI server is running.");
