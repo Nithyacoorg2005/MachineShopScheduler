@@ -7,7 +7,7 @@ import {
 
 import Dashboard from "./src/pages/Dashboard";
 import Schedule from "./src/pages/Schedule";
-import scenarios from "./src/components/scenarios"
+import Scenarios from "./src/pages/Scenarios";
 
 const Placeholder = ({ title }: { title: string }) => (
   <div style={{ padding: 40, fontFamily: "Inter, sans-serif", color: "#111827" }}>
@@ -24,8 +24,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/schedule" element={<Schedule />} />
         
-        {/* 2. Use the capitalized component name in your JSX */}
-        <Route path="/scenarios" element={<scenarios />} /> 
+       // ADD this:
+<Route path="/scenarios" element={<Scenarios />} />
         
         <Route path="/machines" element={<Placeholder title="Machines" />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
