@@ -217,6 +217,10 @@ def run_replanner(
 
     return {
         "status": "success",
+        "constraints": {
+            "feasible": not replanner.last_constraint_violations,
+            "violations": replanner.last_constraint_violations,
+        },
         "operations_count": len(new_schedule),
         "cost": authoritative_cost,
         "cost_breakdown": cost_report,

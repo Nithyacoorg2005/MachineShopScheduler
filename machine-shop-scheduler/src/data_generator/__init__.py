@@ -18,7 +18,7 @@ __all__ = [
     "ORDER_QTY_RANGE",
     "ROUTING_OPS_RANGE",
     "TIER_1_PROBABILITY",
-    "ROUTING_NEEDS_GRINDER_PROB", # Fixed variable name
+    "ROUTING_NEEDS_GRINDER_PROB",
     "REPLAN_CHANGE_PENALTY_LAMBDA",
     "generate_baseline_dataset",
     "validate_dataset_structure",

@@ -33,44 +33,18 @@ class Optimizer:
 
     def set_downtime(self, machine_id, start_time, duration_hours):
         start = self._parse_time(start_time)
+        end = start + timedelta(hours=duration_hours)
+        self.machine_downtime.setdefault(machine_id, []).append((start, end))
 
-        end = start + timedelta(
-            hours=duration_hours
-        )
-
-        self.machine_downtime.setdefault(
-            machine_id,
-            []
-        ).append(
-            (start, end)
-        )
-
-    def _machine_available_after_downtime(
-        self,
-        machine_id,
-        start_time,
-        duration
-    ):
+    def _machine_available_after_downtime(self, machine_id, start_time, duration):
         candidate = start_time
 
         while True:
-            end_time = (
-                candidate +
-                timedelta(minutes=duration)
-            )
-
+            end_time = candidate + timedelta(minutes=duration)
             moved = False
 
-            for downtime_start, downtime_end in (
-                self.machine_downtime.get(
-                    machine_id,
-                    []
-                )
-            ):
-                overlaps = (
-                    candidate < downtime_end
-                    and end_time > downtime_start
-                )
+            for downtime_start, downtime_end in self.machine_downtime.get(machine_id, []):
+                overlaps = candidate < downtime_end and end_time > downtime_start
 
                 if not overlaps:
                     continue
@@ -83,88 +57,47 @@ class Optimizer:
                 return candidate
 
     def _capable_machines(self, operation_type):
-        normalized = self._normalize_type(
-            operation_type
-        )
+        normalized = self._normalize_type(operation_type)
 
         return [
             machine
             for machine in self.machines
-            if self._normalize_type(
-                machine.type
-            ) == normalized
-            and getattr(
-                machine,
-                "status",
-                "AVAILABLE"
-            ) != "DOWN"
+            if self._normalize_type(machine.type) == normalized
+            and getattr(machine, "status", "AVAILABLE") != "DOWN"
         ]
 
-    def _operator_available(
-        self,
-        machine_id,
-        timestamp
-    ):
+    def _operator_available(self, machine_id, timestamp):
         for operator in self.operators:
             if machine_id not in operator.certified_machines:
                 continue
-
             return operator.operator_id
-
         return None
 
-    def _find_machine(
-        self,
-        operation,
-        machine_available,
-        earliest
-    ):
-        operation_type = self._normalize_type(
-            operation["operation_type"]
-        )
-
-        machines = self._capable_machines(
-            operation_type
-        )
+    def _find_machine(self, operation, machine_available, earliest):
+        operation_type = self._normalize_type(operation["operation_type"])
+        machines = self._capable_machines(operation_type)
 
         if not machines:
             return None
 
-        duration = operation.get(
-            "duration_minutes",
-            0
-        )
-
+        duration = operation.get("duration_minutes", 0)
         candidates = []
 
         for machine in machines:
             available = max(
-                machine_available.get(
-                    machine.machine_id,
-                    earliest
-                ),
+                machine_available.get(machine.machine_id, earliest),
                 earliest
             )
 
-            available = (
-                self._machine_available_after_downtime(
-                    machine.machine_id,
-                    available,
-                    duration
-                )
+            available = self._machine_available_after_downtime(
+                machine.machine_id,
+                available,
+                duration
             )
 
-            candidates.append(
-                (
-                    available,
-                    machine.machine_id
-                )
-            )
+            candidates.append((available, machine.machine_id))
 
-        candidates.sort(
-            key=lambda x: x[0]
-        )
-
+        candidates.sort(key=lambda x: x[0])
         return candidates[0]
 
     def optimize(
@@ -176,139 +109,74 @@ class Optimizer:
         current_time=None
     ):
         locked_operations = locked_operations or []
-
-        affected_operation_keys = (
-            affected_operation_keys or set()
-        )
+        affected_operation_keys = affected_operation_keys or set()
 
         result = []
-
         machine_available = {}
 
         for operation in locked_operations:
-            machine_id = operation.get(
-                "machine_id"
-            )
+            machine_id = operation.get("machine_id")
 
             if machine_id is None:
                 continue
 
-            end_time = self._parse_time(
-                operation["end_time"]
-            )
+            end_time = self._parse_time(operation["end_time"])
+            current = machine_available.get(machine_id)
 
-            current = machine_available.get(
-                machine_id
-            )
-
-            if (
-                current is None
-                or end_time > current
-            ):
-                machine_available[
-                    machine_id
-                ] = end_time
+            if current is None or end_time > current:
+                machine_available[machine_id] = end_time
 
         operations_by_order = {}
 
         for operation in baseline_schedule:
-            key = (
-                operation["order_id"],
-                operation["op_seq"]
-            )
+            key = (operation["order_id"], operation["op_seq"])
 
             if key not in affected_operation_keys:
                 continue
 
             operations_by_order.setdefault(
-                operation["order_id"],
-                []
+                operation["order_id"], []
             ).append(operation)
 
         for order in orders:
-            baseline_operations = (
-                operations_by_order.get(
-                    order.order_id,
-                    []
-                )
-            )
+            baseline_operations = operations_by_order.get(order.order_id, [])
 
             if not baseline_operations:
                 continue
 
-            baseline_operations.sort(
-                key=lambda x: x["op_seq"]
-            )
+            baseline_operations.sort(key=lambda x: x["op_seq"])
 
             previous_end = current_time
 
             if previous_end is None:
                 previous_end = min(
-                    self._parse_time(
-                        op["start_time"]
-                    )
+                    self._parse_time(op["start_time"])
                     for op in baseline_operations
                 )
 
             for baseline_operation in baseline_operations:
-                key = (
-                    baseline_operation["order_id"],
-                    baseline_operation["op_seq"]
-                )
+                key = (baseline_operation["order_id"], baseline_operation["op_seq"])
 
                 if key not in affected_operation_keys:
                     continue
 
-                operation_type = (
-                    baseline_operation.get(
-                        "operation_type"
-                    )
-                )
+                operation_type = baseline_operation.get("operation_type")
 
                 duration = baseline_operation.get(
                     "remaining_duration_minutes",
-                    baseline_operation.get(
-                    "duration_minutes",
-                    0
-                    )
+                    baseline_operation.get("duration_minutes", 0)
                 )
 
                 if operation_type == "Inspection":
                     start_time = previous_end
+                    end_time = start_time + timedelta(minutes=duration)
 
-                    end_time = (
-                        start_time +
-                        timedelta(
-                            minutes=duration
-                        )
-                    )
+                    new_operation = dict(baseline_operation)
+                    new_operation["start_time"] = start_time.isoformat().replace("+00:00", "Z")
+                    new_operation["end_time"] = end_time.isoformat().replace("+00:00", "Z")
+                    new_operation["replanned"] = True
 
-                    new_operation = dict(
-                        baseline_operation
-                    )
-
-                    new_operation[
-                        "start_time"
-                    ] = start_time.isoformat().replace(
-                        "+00:00",
-                        "Z"
-                    )
-
-                    new_operation[
-                        "end_time"
-                    ] = end_time.isoformat().replace(
-                        "+00:00",
-                        "Z"
-                    )
-
-                    new_operation[
-                        "replanned"
-                    ] = True
-
-                    result.append(
-                        new_operation
-                    )
-
+                    result.append(new_operation)
                     previous_end = end_time
                     continue
 
@@ -321,75 +189,28 @@ class Optimizer:
                 if machine_result is None:
                     continue
 
-                start_time, machine_id = (
-                    machine_result
-                )
+                start_time, machine_id = machine_result
 
-                end_time = (
-                    start_time +
-                    timedelta(
-                        minutes=duration
-                    )
-                )
+                end_time = start_time + timedelta(minutes=duration)
 
-                operator_id = (
-                    self._operator_available(
-                        machine_id,
-                        start_time
-                    )
-                )
+                operator_id = self._operator_available(machine_id, start_time)
 
                 if operator_id is None:
                     continue
 
-                new_operation = dict(
-                    baseline_operation
-                )
+                new_operation = dict(baseline_operation)
+                new_operation["machine_id"] = machine_id
+                new_operation["operator_id"] = operator_id
+                new_operation["start_time"] = start_time.isoformat().replace("+00:00", "Z")
+                new_operation["end_time"] = end_time.isoformat().replace("+00:00", "Z")
+                new_operation["is_overtime"] = False
+                new_operation["replanned"] = True
 
-                new_operation[
-                    "machine_id"
-                ] = machine_id
+                result.append(new_operation)
 
-                new_operation[
-                    "operator_id"
-                ] = operator_id
-
-                new_operation[
-                    "start_time"
-                ] = start_time.isoformat().replace(
-                    "+00:00",
-                    "Z"
-                )
-
-                new_operation[
-                    "end_time"
-                ] = end_time.isoformat().replace(
-                    "+00:00",
-                    "Z"
-                )
-
-                new_operation[
-                    "is_overtime"
-                ] = False
-
-                new_operation[
-                    "replanned"
-                ] = True
-
-                result.append(
-                    new_operation
-                )
-
-                machine_available[
-                    machine_id
-                ] = end_time
-
+                machine_available[machine_id] = end_time
                 previous_end = end_time
 
-        result.sort(
-            key=lambda operation: self._parse_time(
-                operation["start_time"]
-            )
-        )
+        result.sort(key=lambda operation: self._parse_time(operation["start_time"]))
 
         return result, 0.0

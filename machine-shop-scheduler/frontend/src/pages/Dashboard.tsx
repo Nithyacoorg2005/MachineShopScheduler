@@ -46,6 +46,17 @@ type ApiResponse = {
   schedule: ScheduleOperation[];
   diff?: any;
   cost_breakdown?: CostBreakdown;
+  constraints?: {
+    feasible: boolean;
+    violations: Array<{
+      constraint: string;
+      machine_id: string;
+      order_id: string;
+      op_seq: number;
+      start_time: string;
+      end_time: string;
+    }>;
+  };
 };
 
 type ScenarioEvent = {
@@ -181,16 +192,17 @@ export default function Dashboard() {
     }).length;
   }, [baseline, replanned]);
 
-  const grinderViolations = useMemo(() => {
-    const bs = new Date("2026-08-25T11:00:00Z").getTime();
-    const be = new Date("2026-08-25T19:00:00Z").getTime();
-    return activeSchedule.filter((o) => {
-      if (o.machine_id !== "GRINDER-01") return false;
-      const s = new Date(o.start_time).getTime();
-      const e = new Date(o.end_time).getTime();
-      return s < be && e > bs;
-    }).length;
-  }, [activeSchedule]);
+  // Replace lines 184–193 with this:
+const grinderViolations = useMemo(() => {
+  // Only meaningful after replanning — baseline will always have ops in the window
+  if (!replanned) return null;
+
+  return replanned.constraints?.violations.filter(
+    (violation) => violation.machine_id === "GRINDER-01"
+  ).length ?? 0;
+}, [replanned]);
+
+  const replanFeasible = replanned?.constraints?.feasible ?? false;
 
   const totalOps       = baseline?.operations_count ?? activeSchedule.length;
   const baselineCost   = baseline?.cost_breakdown?.baseline?.total_cost ?? baseline?.cost ?? 0;
@@ -491,7 +503,7 @@ export default function Dashboard() {
                     <div style={{ padding: "12px 16px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, color: "#6b7280", letterSpacing: "0.06em" }}>
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,0.15)", display: "inline-block" }} />
-                        {replanned ? "REPLAN COMPLETE" : "READY"}
+                        {replanned ? (replanFeasible ? "REPLAN COMPLETE · FEASIBLE" : "REPLAN COMPLETE · VIOLATION") : "READY"}
                       </div>
                       <button
                         className="db-run"
@@ -543,26 +555,27 @@ export default function Dashboard() {
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#0a0a0a" }}>Constraint Status</div>
                       <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>Hard constraint validation</div>
                     </div>
-                    <span style={grinderViolations === 0
-                      ? { background: "#f0fdf4", color: "#15803d", fontSize: 10, fontWeight: 700, padding: "4px 12px", borderRadius: 20, border: "1px solid #bbf7d0", letterSpacing: "0.08em" }
-                      : { background: "#fef2f2", color: "#dc2626", fontSize: 10, fontWeight: 700, padding: "4px 12px", borderRadius: 20, border: "1px solid #fecaca", letterSpacing: "0.08em" }
-                    }>
-                      {grinderViolations === 0 ? "✓ VALID" : "⚠ VIOLATION"}
-                    </span>
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
-                    {[
-                      { label: "TOTAL OPS",          value: String(activeSchedule.length),  color: undefined },
-                      { label: "DUPLICATES",         value: "0",                             color: "#16a34a" },
-                      { label: "GRINDER VIOLATIONS", value: String(grinderViolations),       color: grinderViolations === 0 ? "#16a34a" : "#dc2626" },
-                      { label: "OVERTIME OPS",       value: String(activeSchedule.filter((o) => o.is_overtime).length), color: undefined },
-                    ].map(({ label, value, color }, i, arr) => (
-                      <div key={label} style={{ padding: "20px 24px", borderRight: i < arr.length - 1 ? "1px solid #f3f4f6" : "none" }}>
-                        <div style={{ fontSize: 9, fontWeight: 800, color: "#9ca3af", letterSpacing: "0.14em", marginBottom: 8 }}>{label}</div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: color ?? "#0a0a0a", letterSpacing: "-0.03em" }}>{value}</div>
-                      </div>
-                    ))}
-                  </div>
+                    <span style={
+  grinderViolations === null || replanFeasible
+    ? { background: "#f0fdf4", color: "#15803d", fontSize: 10, fontWeight: 700, padding: "4px 12px", borderRadius: 20, border: "1px solid #bbf7d0", letterSpacing: "0.08em" }
+    : { background: "#fef2f2", color: "#dc2626", fontSize: 10, fontWeight: 700, padding: "4px 12px", borderRadius: 20, border: "1px solid #fecaca", letterSpacing: "0.08em" }
+}>
+  {grinderViolations === null ? "BASELINE" : grinderViolations === 0 ? "✓ VALID" : "⚠ VIOLATION"}
+</span>
+</div>
+<div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+  {[
+    { label: "TOTAL OPS",          value: String(activeSchedule.length),                                          color: undefined },
+    { label: "DUPLICATES",         value: "0",                                                                     color: "#16a34a" },
+    { label: "GRINDER VIOLATIONS", value: grinderViolations === null ? "—" : String(grinderViolations),           color: grinderViolations === null ? "#9ca3af" : grinderViolations === 0 ? "#16a34a" : "#dc2626" },
+    { label: "OVERTIME OPS",       value: String(activeSchedule.filter((o) => o.is_overtime).length),             color: undefined },
+  ].map(({ label, value, color }, i, arr) => (
+    <div key={label} style={{ padding: "20px 24px", borderRight: i < arr.length - 1 ? "1px solid #f3f4f6" : "none" }}>
+      <div style={{ fontSize: 9, fontWeight: 800, color: "#9ca3af", letterSpacing: "0.14em", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: color ?? "#0a0a0a", letterSpacing: "-0.03em" }}>{value}</div>
+    </div>
+  ))}
+</div>
                 </div>
 
               </>
