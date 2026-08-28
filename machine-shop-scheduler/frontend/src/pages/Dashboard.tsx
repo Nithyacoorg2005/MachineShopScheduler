@@ -266,10 +266,7 @@ const grinderViolations = useMemo(() => {
               <span style={{ color: "#111827", fontWeight: 600, fontSize: 11 }}>Operations</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 600, color: "#16a34a" }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,0.15)", display: "inline-block" }} />
-                Engine online
-              </div>
+              
               <button
                 className="db-refresh"
                 onClick={loadBaseline}

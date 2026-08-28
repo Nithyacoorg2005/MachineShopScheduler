@@ -142,7 +142,6 @@ setResult({
   diff: data.diff,
 });
     } catch (err) {
-      console.error(err);
       setError("Replanning failed. Check that the FastAPI server is running.");
     } finally {
       setRunning(false);

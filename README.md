@@ -288,7 +288,7 @@ Simultaneous `MILL-01` and `DRILL-02` maintenance. Tests schedule feasibility wi
 The replanner enforces the following hard constraints on every replan:
 
 1. Completed operations are never moved
-2. The total operation count matches the baseline — no operations are lost
+2. Every baseline operation key exists in the final schedule; additional operation keys are allowed for injected work
 3. No duplicate operation keys in the final schedule
 4. Machine downtime windows are respected
 5. Operator availability is enforced

@@ -93,8 +93,6 @@ const Schedule: React.FC<ScheduleProps> = ({
           setFetchedSchedule(response.schedule ?? []);
         }
       } catch (error) {
-        console.error("Failed to load schedule:", error);
-
         if (!cancelled) {
           setFetchedSchedule([]);
         }
