@@ -136,7 +136,7 @@ setResult({
       affected_operations:          diffSummary?.changed_operations         ?? 0,
       moved_operations:             diffSummary?.machine_changes            ?? 0,
       total_completion_delay_hours: (diffSummary?.total_completion_delay_minutes ?? 0) / 60,
-      max_completion_delay_hours:   (diffSummary?.total_completion_delay_minutes ?? 0) / 60,
+      max_completion_delay_hours:   (diffSummary?.max_completion_delay_minutes ?? 0) / 60,
     },
   },
   diff: data.diff,
