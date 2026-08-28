@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { getBaseline } from "../services/api";
 import Sidebar from "../components/layout/Sidebar";
 import GanttRow from "../components/schedule/GanttRow";
 import ScheduleLegend from "../components/schedule/ScheduleLegend";
@@ -21,6 +22,10 @@ type ScheduleProps = {
   loading?: boolean;
 };
 
+function textOrFallback(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
 function ScheduleGantt({ schedule }: { schedule: ScheduleOperation[] }) {
   const { timelineStart, timelineEnd, rows } = useMemo(() => {
     const starts = schedule.map((o) => new Date(o.start_time).getTime()).filter(Number.isFinite);
@@ -29,9 +34,10 @@ function ScheduleGantt({ schedule }: { schedule: ScheduleOperation[] }) {
     const end    = Math.max(...ends);
     const grouped = new Map<string, ScheduleOperation[]>();
     for (const op of schedule) {
-      const arr = grouped.get(op.machine_id) ?? [];
+      const machineId = textOrFallback(op.machine_id, "UNASSIGNED");
+      const arr = grouped.get(machineId) ?? [];
       arr.push(op);
-      grouped.set(op.machine_id, arr);
+      grouped.set(machineId, arr);
     }
     return {
       timelineStart: start,
@@ -57,12 +63,70 @@ function ScheduleGantt({ schedule }: { schedule: ScheduleOperation[] }) {
     </div>
   );
 }
-
-const Schedule: React.FC<ScheduleProps> = ({ schedule = [], loading = false }) => {
-  const [machineFilter,   setMachineFilter]   = useState("ALL");
-  const [operatorFilter,  setOperatorFilter]  = useState("ALL");
-  const [search,          setSearch]          = useState("");
+const Schedule: React.FC<ScheduleProps> = ({
+  schedule: providedSchedule,
+  loading: providedLoading = false,
+}) => {
+  const [fetchedSchedule, setFetchedSchedule] = useState<ScheduleOperation[]>([]);
+  const [fetching, setFetching] = useState(true);
+  const [search, setSearch] = useState("");
+  const [machineFilter, setMachineFilter] = useState("ALL");
+  const [operatorFilter, setOperatorFilter] = useState("ALL");
   const [showOvertimeOnly, setShowOvertimeOnly] = useState(false);
+
+  useEffect(() => {
+    // If the parent already provides a schedule, use it.
+    if (providedSchedule && providedSchedule.length > 0) {
+      setFetching(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadSchedule = async () => {
+      try {
+        setFetching(true);
+
+        const response = await getBaseline();
+
+        if (!cancelled) {
+          setFetchedSchedule(response.schedule ?? []);
+        }
+      } catch (error) {
+        console.error("Failed to load schedule:", error);
+
+        if (!cancelled) {
+          setFetchedSchedule([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setFetching(false);
+        }
+      }
+    };
+
+    loadSchedule();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [providedSchedule]);
+
+  const schedule = useMemo(() => {
+    const source = providedSchedule?.length
+      ? providedSchedule
+      : fetchedSchedule;
+
+    return source.map((operation) => ({
+      ...operation,
+      order_id: textOrFallback(operation.order_id, "UNKNOWN ORDER"),
+      operation_type: textOrFallback(operation.operation_type, "Unspecified"),
+      machine_id: textOrFallback(operation.machine_id, "UNASSIGNED"),
+      operator_id: textOrFallback(operation.operator_id, "UNASSIGNED"),
+    }));
+  }, [providedSchedule, fetchedSchedule]);
+
+  const loading = providedLoading || fetching;
 
   const machines = useMemo(
     () => Array.from(new Set(schedule.map((o) => o.machine_id).filter(Boolean))).sort(),
@@ -124,10 +188,7 @@ const Schedule: React.FC<ScheduleProps> = ({ schedule = [], loading = false }) =
             <span style={{ color: "#e5e7eb" }}>/</span>
             <span style={{ color: "#374151", fontWeight: 500 }}>Schedule</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#22c55e", fontWeight: 500 }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e", display: "inline-block" }} />
-            Engine connected
-          </div>
+          
         </header>
 
         {/* Page header */}
